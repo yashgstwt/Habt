@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.theo.habt.dataLayer.localDb.Habit
@@ -55,7 +56,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
         Reactions.NEUTRAL -> neutral
         Reactions.SUPER_HAPPY -> superHappy
     }
-
+viewModel.markAsCompleted()
     val reactionText = when(reaction){
         Reactions.SMILE -> "HAPPY"
         Reactions.ANGRY -> "ANGRY"
@@ -99,20 +100,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
 
             Heatmap(modifier = Modifier.padding(10.dp))
 
-            Button(onClick = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    viewModel.createNewHabit(
-                        Habit(
-                            name = "Running",
-                            colorHex = Color.Black.toString(),
-                            iconName = "running"
-                        )
-                    )
 
-                }
-            }) {
-                Text("add new habit")
-            }
             ProgressMap(modifier = Modifier.padding(10.dp))
             ProgressMap(modifier = Modifier.padding(10.dp))
             ProgressMap(modifier = Modifier.padding(10.dp))

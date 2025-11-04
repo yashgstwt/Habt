@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.LocalTime
 import java.util.Date
 
 
@@ -21,14 +22,17 @@ data class Habit(
     @ColumnInfo(name = "name")
     val name: String,
 
-    @ColumnInfo(name = "color_hex")
-    val colorHex: String,
+    @ColumnInfo(name = "color_argb")
+    val colorArgb: Int,
 
-    @ColumnInfo(name = "icon_name")
-    val iconName: String,
+    @ColumnInfo(name = "icon_index")
+    val icon: String,
 
     @ColumnInfo(name = "creation_date")
-    val creationDate: Long = 1L
+    val creationDate: Long = 1L,
+
+    @ColumnInfo(name = "reminder")
+    val reminder: LocalTime? = null
 
 )
 

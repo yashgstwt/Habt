@@ -11,12 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.rememberNavController
-import com.theo.habt.presentation.navigation.NavigationRouts
-import dagger.hilt.android.AndroidEntryPoint
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
+import com.theo.habt.presentation.AnalyticScreen.AnalyticScreen
 import com.theo.habt.presentation.addnewHabitScreen.AddNewHabit
 import com.theo.habt.presentation.homeScreen.HomeScreen
+import com.theo.habt.presentation.navigation.NavigationRouts
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+
                 NavHost(
                     navController = navController,
                     startDestination = NavigationRouts.Home,
@@ -37,6 +39,9 @@ class MainActivity : ComponentActivity() {
                     }
                     composable<NavigationRouts.AddHabit> {
                         AddNewHabit()
+                    }
+                    composable<NavigationRouts.Analytic> {
+                        AnalyticScreen()
                     }
                 }
             }

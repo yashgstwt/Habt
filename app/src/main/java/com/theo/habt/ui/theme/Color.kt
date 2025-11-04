@@ -19,9 +19,9 @@ val blank = Color(0xFF565656)
 
 
 
-
 val colorPallet = listOf<Color>(
     Color(0xFF009688),
+    Color(0xFF16610E),
     Color(0xFF4CAF50),
     Color(0xFF8BC34A),
     Color(0xFFCDDC39),
@@ -37,8 +37,9 @@ val colorPallet = listOf<Color>(
     Color(0xFF03A9F4),
     Color(0xFF3F51B5),
     Color(0xFF565656),
-    Color(0xFF16610E),
     Color(0xFFFFE6E1),
     Color(0xFFFF9A9A),
 
 )
+
+val INITIAL_COLOR = colorPallet[0];

@@ -9,6 +9,7 @@ import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -17,13 +18,16 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
 
     fun markAsCompleted(){
 
-
+        Log.e("random", " +++++++++++++++++++++++++++++++++++++++++++++++ it workss ")
     }
 
      fun createNewHabit(habit : Habit){
 
             try {
-                roomDbRepo.insertHabit(habit)
+                viewModelScope.launch(Dispatchers.IO) {
+
+                    roomDbRepo.insertHabit(habit)
+                }
             }catch (e: SQLiteConstraintException) {
                 // This habit name already exists!
                 // Show a Toast, a Snackbar, or update a UI state variable with an error message.

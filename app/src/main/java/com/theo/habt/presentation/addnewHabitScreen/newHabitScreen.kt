@@ -1,6 +1,8 @@
 package com.theo.habt.presentation.addnewHabitScreen
 
+import android.R.id.selectedIcon
 import android.annotation.SuppressLint
+import android.database.sqlite.SQLiteConstraintException
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -20,7 +22,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -35,38 +41,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.theo.habt.ui.theme.colorPallet
 import com.theo.habt.dataLayer.constants.habitIcons
+import com.theo.habt.presentation.components.CongratulationsCard
 import com.theo.habt.presentation.components.TimePicker
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-
+import kotlin.math.log
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showSystemUi = true)
 @Composable
-fun AddNewHabit(modifier: Modifier = Modifier){
-    var selectedColor by remember { mutableStateOf<Color>(colorPallet[0]) }
-    var selectedIcon by remember { mutableStateOf(habitIcons[0]) }
-    var habitName by remember { mutableStateOf("") }
-    var selectedTime: TimePickerState by remember { mutableStateOf(TimePickerState(initialHour = 12 , initialMinute = 0 , is24Hour = false)) }
-    var checked by remember { mutableStateOf(true) }
+fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = hiltViewModel()){
+
+    val habit by viewModal.habit.collectAsStateWithLifecycle()
+
+
+    var checked by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    var showColorBottomSheet by remember { mutableStateOf(false) }
-    var showIconBottomSheet by remember { mutableStateOf(false)   }
-    var showTimePicker by remember { mutableStateOf(false)   }
+    var showColorBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showIconBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showTimePicker by rememberSaveable { mutableStateOf(false)  }
 
     Scaffold { contentPadding ->
         // Screen content
@@ -79,8 +90,10 @@ fun AddNewHabit(modifier: Modifier = Modifier){
             Text("Habit Name" , color = Color.White , fontSize = 20.sp , modifier = Modifier.padding(10.dp) )
 
             TextField(
-                value = habitName,
-                onValueChange = { newText -> habitName = newText },
+                value = habit.name,
+                onValueChange = { newText ->
+                                    viewModal.updateName(newText)
+                                },
                 label = { Text("Enter your Habit Name") },
                 shape = RoundedCornerShape(15.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -119,7 +132,7 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                             .padding(horizontal = 10.dp),
                         contentDescription = "habit logo",
                         tint = Color.White,
-                        imageVector = selectedIcon
+                        imageVector = habitIcons.getValue(habit.icon) //habitIcons[habit.icon]
                     )
 
                     Text(
@@ -148,7 +161,7 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                        .size(50.dp)
                        .padding(5.dp)
                        .clip(RoundedCornerShape(15.dp))
-                       .background(selectedColor))
+                       .background(Color(habit.colorArgb)))
 
                     Text(
                         text="Color" ,
@@ -190,7 +203,7 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                 ){
                     items (colorPallet){ color ->
 
-                        val isSelected = selectedColor == color
+                        val isSelected = Color(habit.colorArgb) == color
 
                         Box(
                             modifier = Modifier
@@ -198,7 +211,7 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                                 .padding(5.dp)
                                 .clip(RoundedCornerShape(10.dp))
                                 .clickable {
-                                    selectedColor = color
+                                    viewModal.updateColor(color.toArgb())
                                 }
                                 .background(color)
                                 .border(
@@ -229,6 +242,8 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
 
+                val iconList by rememberSaveable() { mutableStateOf(habitIcons.toList())}
+
                 LazyVerticalGrid(
                     columns = GridCells.FixedSize(50.dp) ,
                     contentPadding = PaddingValues(5.dp),
@@ -239,9 +254,8 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                     verticalArrangement = Arrangement.Center,
                     horizontalArrangement = Arrangement.Center
                 ){
-                    items (habitIcons){ icon ->
-
-                        val isSelected = selectedIcon == icon
+                    items(iconList , key = { icon -> icon.first  }) { icon  ->
+                        val isSelected = habit.icon == icon.first
 
                             Icon(
                                 modifier = Modifier
@@ -255,9 +269,9 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                                     )
                                     .background(Color.DarkGray)
                                     .clickable {
-                                        selectedIcon = icon
+                                        viewModal.updateIcon(icon.first)
                                     },
-                                imageVector = icon,
+                                imageVector = icon.second,
                                 tint = Color.White,
                                 contentDescription = "icon"
                             )
@@ -285,27 +299,30 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                         }
                     )
                 }
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        enabled = true,
-                        onClick = { showTimePicker = true }
-                    ),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Set Time" , color = Color.White , fontSize = 20.sp, textAlign = TextAlign.Center)
-                    Text(
-                        text = String.format("%02d:%02d %s", selectedTime.hour,selectedTime. minute, if (selectedTime.isPm ) "PM" else "AM"   ) ,
-                        color = Color.White ,
-                        fontSize = 20.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(selectedColor)
-                            .padding(horizontal = 10.dp, vertical = 5.dp)
-                    )
-
+                if(checked){
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            enabled = true,
+                            onClick = { showTimePicker = true }
+                        ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Set Time" , color = Color.White , fontSize = 20.sp, textAlign = TextAlign.Center)
+                        Text(
+                            text = String.format("%02d:%02d %s",
+                                habit.time?.hour?: 12, habit.time?.minute?:12,
+                                habit.time?.hour?.let { if (it > 12 ) "PM" else "AM" }) ,
+                            color = Color.White ,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color(habit.colorArgb))
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        )
+                    }
                 }
             }
 
@@ -316,10 +333,58 @@ fun AddNewHabit(modifier: Modifier = Modifier){
                             showTimePicker = false
                         },
                         onConfirm = { time ->
-                            selectedTime = (time as TimePickerState?)!!
+                            viewModal.updateReminderTime(time.hour , time.minute)
                             showTimePicker = false
                         },
                     )
+                }
+            }
+
+        val showAlerts = viewModal.showAlert.collectAsStateWithLifecycle()
+        val alertsText = viewModal.alertMessage.collectAsStateWithLifecycle()
+
+            Button(onClick = {
+
+                viewModal.insertHabit()
+
+            }) {
+                Text(text = "Submit")
+            }
+
+            if(showAlerts.value){
+                BasicAlertDialog(
+                    onDismissRequest = {
+                        viewModal.updateShowAlert( false)
+                    },
+                    properties = DialogProperties(),
+                    modifier = Modifier.clip(RoundedCornerShape(25.dp)).background(Color.DarkGray)
+                ){
+                    Column() {
+                        Text(alertsText.value, fontSize = 25.sp , color = Color.White ,modifier =  Modifier.padding(20.dp) )
+                        Row(
+                            modifier = Modifier.padding(10.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModal.updateShowAlert( false)
+                                }
+                            ) {
+                                Text("Ok", color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(habit.showSuccessMessage){
+                AlertDialog(onDismissRequest = {
+                    viewModal.updateShowSuccessMessage(false)
+                }){
+
+                    CongratulationsCard()
                 }
             }
         }

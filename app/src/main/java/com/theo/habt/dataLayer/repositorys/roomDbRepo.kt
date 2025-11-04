@@ -1,5 +1,6 @@
 package com.theo.habt.dataLayer.repositorys
 
+import android.database.sqlite.SQLiteConstraintException
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.localDb.HabtDb
@@ -9,9 +10,9 @@ interface RoomDbRepoInter{
 
     suspend fun getAllHabits() : List<Habit>
 
-    fun insertHabit(habit : Habit)
+    suspend fun insertHabit(habit : Habit): Result<Unit>
 
-    fun deleteHabit(habit: Habit)
+    suspend fun deleteHabit(habit: Habit)
 
     suspend fun getHabitCompletionsForDateRange(habitId: Int, startDate: Long, endDate: Long): List<HabitCompletion>
 
@@ -27,11 +28,24 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
         return  roomDatabase.habitDao().getAllHabits()
     }
 
-    override fun insertHabit(habit: Habit) {
-        roomDatabase.habitDao().insertHabit(habit)
+    override suspend fun insertHabit(habit: Habit): Result<Unit> {
+
+        return runCatching {
+            try {
+                roomDatabase.habitDao().insertHabit(habit)
+            }catch (e : SQLiteConstraintException){
+                if (e.message?.contains("UNIQUE constraint failed", ignoreCase = true) == true) {
+                    // Translate the specific DB error into our domain-specific error
+                  throw  RepositoryError.RoomErrors.NameAlreadyExist
+                } else {
+                   throw RepositoryError.RoomErrors.Unknown
+                }
+
+            }
+        }
     }
 
-    override fun deleteHabit(habit: Habit) {
+    override suspend fun deleteHabit(habit: Habit) {
         roomDatabase.habitDao().deleteHabit(habit)
     }
 
