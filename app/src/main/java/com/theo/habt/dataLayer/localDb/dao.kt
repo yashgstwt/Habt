@@ -4,19 +4,21 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 
 @Dao
 interface HabitDAO {
 
     @Query("Select * from habits")
-    suspend fun getAllHabits() : List<Habit>
+    fun getAllHabits() : Flow<List<Habit?>>
 
     @Insert
-    fun insertHabit(habit : Habit)
+    suspend fun insertHabit(habit : Habit)
 
     @Delete
-    fun deleteHabit(habit: Habit)
+    suspend fun deleteHabit(habit: Habit)
 
 }
 
@@ -24,7 +26,7 @@ interface HabitDAO {
 interface HabitCompletionDAO {
 
     @Query("SELECT * FROM habit_completions WHERE habit_id = :habitId AND completion_date BETWEEN :startDate AND :endDate ORDER BY completion_date ASC")
-    suspend fun getHabitCompletionsForDateRange(habitId: Int, startDate: Long, endDate: Long): List<HabitCompletion>
+    fun getHabitCompletionsForDateRange(habitId: Int, startDate: Long, endDate: Long): Flow<List<HabitCompletion>>
 
     @Insert
     suspend fun insertHabitCompletion(habitCompletion: HabitCompletion)

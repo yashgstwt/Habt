@@ -1,5 +1,6 @@
 package com.theo.habt.presentation.homeScreen
 
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -19,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,10 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.theo.habt.dataLayer.localDb.Habit
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.theo.habt.presentation.components.Face
 import com.theo.habt.presentation.components.Heatmap
 import com.theo.habt.presentation.components.ProgressMap
@@ -39,15 +40,19 @@ import com.theo.habt.presentation.components.disappointed
 import com.theo.habt.presentation.components.neutral
 import com.theo.habt.presentation.components.smile
 import com.theo.habt.presentation.components.superHappy
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+
 
 
 //@Preview(showSystemUi = true)
 @Composable
 fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScreen : () -> Unit   ){
     var reaction by remember { mutableStateOf(Reactions.SMILE) }
+
+    val state  by  viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(state.habits) {
+        Log.d("Habit" , state.habits.toString())
+    }
 
     val color = when(reaction){
         Reactions.SMILE -> smile
@@ -66,7 +71,7 @@ viewModel.markAsCompleted()
     }
 
 
-    val bgcolor = animateColorAsState(
+    val bgColor = animateColorAsState(
         targetValue = color ,
         animationSpec = tween(1000)
     )
@@ -90,7 +95,7 @@ viewModel.markAsCompleted()
                         bottomEndPercent = 50,
                         bottomStartPercent = 50
                     )
-                ).background(bgcolor.value)
+                ).background(bgColor.value)
             ) {
                 Face(
                     modifier = Modifier.size(500.dp),
@@ -99,6 +104,15 @@ viewModel.markAsCompleted()
             }
 
             Heatmap(modifier = Modifier.padding(10.dp))
+
+
+            Button(
+                onClick = {
+                    viewModel.getHabits()
+                }
+            ) {
+                Text("fetch habits")
+            }
 
 
             ProgressMap(modifier = Modifier.padding(10.dp))

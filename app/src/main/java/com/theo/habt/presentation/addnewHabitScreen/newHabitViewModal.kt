@@ -29,7 +29,7 @@ data class NewHabitUiState (
     val colorArgb: Int = INITIAL_COLOR.toArgb(),
     val icon: String = INITAL_ICON_ID,
     val time: LocalTime? = null,
-    val showSuccessMessage: Boolean = false
+    val showSuccessMessage: Boolean = false,
 )
 
 @HiltViewModel
@@ -56,17 +56,20 @@ class NewHabitViewModal @Inject constructor( private val roomDbRepo: RoomDbRepo 
         _alertMessage.value = value
     }
     fun updateName (name : String){
-        _habit.value = _habit.value.copy(name= name )
+        _habit.update {_habit.value.copy(name= name )}
     }
     fun updateColor (color : Int){
-        _habit.value = _habit.value.copy(colorArgb = color )
+        _habit.update {_habit.value.copy(colorArgb = color )}
     }
     fun updateIcon (iconId : String){
-        _habit.value = _habit.value.copy(icon = iconId )
+        _habit.update { _habit.value.copy(icon = iconId )}
     }
     fun updateReminderTime (hour : Int , min :Int){
-        _habit.value = _habit.value.copy(time = LocalTime.of(hour , min) )
+        _habit.update {
+            _habit.value.copy(time = LocalTime.of(hour , min) )
+        }
     }
+
 
     @OptIn(ExperimentalTime::class)
     fun insertHabit () {
@@ -96,4 +99,5 @@ class NewHabitViewModal @Inject constructor( private val roomDbRepo: RoomDbRepo 
             }
 
     }
+
 }
