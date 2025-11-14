@@ -1,24 +1,22 @@
 package com.theo.habt.presentation.homeScreen
 
-import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.theo.habt.dataLayer.localDb.Habit
+import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.repositorys.RepositoryError
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 
 data class HomeUiState(
@@ -37,10 +35,23 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
         initialValue = HomeUiState()
     )
 
+    init{
+        val dateTime = LocalDateTime.now()
+        val instant = dateTime.atZone(ZoneId.systemDefault()).toInstant()
+        val timestamp: Long = instant.toEpochMilli()
+        Log.d("today's date" , "In long $timestamp")
 
-    fun markAsCompleted(){
+        val dateTimeAgain = Instant.ofEpochMilli(timestamp)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+        Log.d("today's date" , "In formated  $dateTimeAgain")
 
-        Log.e("random", " +++++++++++++++++++++++++++++++++++++++++++++++ it workss ")
+
+    }
+    fun markAsCompleted(habitCompletion: HabitCompletion) {
+        viewModelScope.launch {
+            roomDbRepo.insertHabitCompletion(habitCompletion)
+        }
     }
 
 
@@ -68,8 +79,6 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
                  }
              }
         }
-
-
     }
 
 

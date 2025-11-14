@@ -35,7 +35,7 @@ import com.theo.habt.ui.theme.twentyFivePercent
 @Composable
 fun Heatmap(modifier: Modifier= Modifier, noOfDays : Int = 30){
 
-    Column {
+    Column(modifier = modifier) {
 
         Text("This Month's Progress", fontSize = 20.sp , modifier = Modifier.padding(horizontal = 10.dp , vertical = 5.dp), color = Color.White)
 

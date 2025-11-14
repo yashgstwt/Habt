@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.theo.habt.dataLayer.constants.INITAL_ICON_ID
 import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.dataLayer.localDb.Habit
+import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.repositorys.RepositoryError
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import com.theo.habt.ui.theme.INITIAL_COLOR
@@ -18,7 +19,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.LocalTime
+import java.util.Date
 import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -68,6 +71,15 @@ class NewHabitViewModal @Inject constructor( private val roomDbRepo: RoomDbRepo 
         _habit.update {
             _habit.value.copy(time = LocalTime.of(hour , min) )
         }
+    }
+
+
+
+    fun insertHabitCompletion(entry : HabitCompletion){
+        viewModelScope.launch {
+            roomDbRepo.insertHabitCompletion(entry)
+        }
+
     }
 
 
