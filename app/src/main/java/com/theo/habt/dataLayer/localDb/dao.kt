@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
+import com.theo.habt.dataLayer.constants.HabitWithCompletions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -19,6 +21,10 @@ interface HabitDAO {
 
     @Delete
     suspend fun deleteHabit(habit: Habit)
+
+    @Transaction // Important: Ensures the query is run atomically
+    @Query("SELECT * FROM habits")
+    fun getHabitsWithCompletions(): Flow<List<HabitWithCompletions?>?>
 
 }
 

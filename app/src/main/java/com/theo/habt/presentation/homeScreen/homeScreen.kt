@@ -1,32 +1,22 @@
 package com.theo.habt.presentation.homeScreen
 
-import android.util.Log
+import ProgressMap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,10 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.theo.habt.dataLayer.localDb.HabitCompletion
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.theo.habt.presentation.components.Face
-import com.theo.habt.presentation.components.Heatmap
-import com.theo.habt.presentation.components.ProgressMap
 import com.theo.habt.presentation.components.Reactions
 import com.theo.habt.presentation.components.angry
 import com.theo.habt.presentation.components.disappointed
@@ -50,17 +38,13 @@ import com.theo.habt.presentation.components.smile
 import com.theo.habt.presentation.components.superHappy
 
 
-
 @Preview(showSystemUi = true)
 @Composable
-fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScreen : () -> Unit = {}  ){
+fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScreen: () -> Unit = {}) {
+
     var reaction by remember { mutableStateOf(Reactions.SMILE) }
+    val state by viewModel.state.collectAsStateWithLifecycle()
 
-    val state  by  viewModel.state.collectAsStateWithLifecycle()
-
-    LaunchedEffect(state.habits) {
-        Log.d("Habit" , state.habits.toString())
-    }
 
     val color = when(reaction){
         Reactions.SMILE -> smile
@@ -69,65 +53,81 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
         Reactions.NEUTRAL -> neutral
         Reactions.SUPER_HAPPY -> superHappy
     }
-    viewModel.markAsCompleted(HabitCompletion(completionDate = 45 , habitId = 1 , isCompleted = true ))
-    val reactionText = when(reaction){
-        Reactions.SMILE -> "HAPPY"
-        Reactions.ANGRY -> "ANGRY"
-        Reactions.DISAPPOINTED -> "DISAPPOINTED"
-        Reactions.NEUTRAL -> "NEUTRAL"
-        Reactions.SUPER_HAPPY -> "SUPER HAPPY"
-    }
-
 
     val bgColor = animateColorAsState(
-        targetValue = color ,
+        targetValue = color,
         animationSpec = tween(1000)
     )
+
 
     Scaffold(
         modifier = Modifier,
         floatingActionButton = {
-            FloatingActionButton(onClick = {navigateToAddHabitScreen() }) {
+            FloatingActionButton(onClick = { navigateToAddHabitScreen() }) {
                 Icon(Icons.Filled.Add, "Floating action button.")
             }
         }
-    ){ paddingValues ->
+    ) { paddingValues ->
 
+        val pd = paddingValues
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.Black)
+        ) {
 
-        Column(modifier = Modifier.verticalScroll(rememberScrollState()).fillMaxWidth().wrapContentHeight().padding(paddingValues).background(Color.Black)) {
+            item {
 
-            Box(
-                modifier = Modifier.height(300.dp).fillMaxWidth().clip(
-                    RoundedCornerShape(
-                        topStartPercent = 0,
-                        topEndPercent = 0,
-                        bottomEndPercent = 50,
-                        bottomStartPercent = 50
+                Box(
+                    modifier = Modifier
+                        .height(300.dp)
+                        .fillMaxWidth()
+                        .clip(
+                            RoundedCornerShape(
+                                topStartPercent = 0,
+                                topEndPercent = 0,
+                                bottomEndPercent = 50,
+                                bottomStartPercent = 50
+                            )
+                        )
+                        .background(bgColor.value)
+                ) {
+                    Face(
+                        modifier = Modifier.size(500.dp),
+                        reactions = reaction
                     )
-                ).background(bgColor.value)
-            ) {
-                Face(
-                    modifier = Modifier.size(500.dp),
-                    reactions = reaction
-                )
-            }
-
-            Heatmap(modifier = Modifier.padding(10.dp).height(250.dp), noOfDays = 31)
-
-            Button(
-                onClick = {
-                    viewModel.getHabits()
-                    viewModel.markAsCompleted(HabitCompletion(completionDate = 45 , habitId =2 , isCompleted = true ))
                 }
-            ) {
-                Text("fetch habits")
+
+//
+//                Heatmap(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(160.dp), // Give it a fixed height
+//                    startDate = LocalDate.now()
+//                        .minusDays(state.habitCompletionList.size.toLong() - 1),
+//                    completions = viewModel.getHeatmapForMonthArray(year = 2025, month = 11)
+//                        .toList(),
+//                    completedColor = Color.Green
+//                )
             }
 
 
-            ProgressMap(modifier = Modifier.padding(10.dp))
-            ProgressMap(modifier = Modifier.padding(10.dp))
-            ProgressMap(modifier = Modifier.padding(10.dp))
-            ProgressMap(modifier = Modifier.padding(10.dp))
+//            items(
+//                items = state.habitsWithCompletions,
+//            ) { habit ->
+//                habit?.let {
+//                    ProgressMap(habit =  habit , completions =  state.habitCompletionList.toList())
+//                }
+//            }
+
+            items(state.habitsWithCompletions?.size ?: 0 ){ item ->
+                state.habitsWithCompletions?.get(item)?.let {
+                    ProgressMap(habit =  it.habit!! , completions =  it.habitCompletions ){ habitCompletion ->
+                        viewModel.markAsCompleted(habitCompletion)
+
+                    }
+                }
+            }
         }
     }
 }

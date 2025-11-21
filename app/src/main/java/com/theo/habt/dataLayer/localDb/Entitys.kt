@@ -5,10 +5,8 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.time.LocalDate
 import java.time.LocalTime
-import java.util.Date
-
-
 
 
 @Entity(
@@ -59,9 +57,9 @@ data class HabitCompletion(
     val habitId: Int,
 
     @ColumnInfo(name = "completion_date")
-    val completionDate: Long ,// Storing date as Long (timestamp) for easier querying
+    val completionDate: Long?,
 
     @ColumnInfo(name="is_completed")
-    val isCompleted : Boolean
+    val isCompleted: Boolean
 
 )

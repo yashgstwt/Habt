@@ -4,6 +4,7 @@ import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import android.util.StateSet
 import androidx.sqlite.SQLiteException
+import com.theo.habt.dataLayer.constants.HabitWithCompletions
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.localDb.HabtDb
@@ -24,6 +25,8 @@ interface RoomDbRepoInter{
     suspend fun insertHabitCompletion(habitCompletion: HabitCompletion) :Result<Unit>
 
     suspend fun deleteHabitCompletion(habitCompletion: HabitCompletion):Result<Unit>
+
+    suspend fun getHabitWithCompletions() : Result<Flow<List<HabitWithCompletions?>?>>
 }
 
 
@@ -101,6 +104,12 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
         return runCatching {
             roomDatabase.HabitCompletionDAO().deleteHabitCompletion(habitCompletion)
 
+        }
+    }
+
+    override suspend fun getHabitWithCompletions(): Result<Flow<List<HabitWithCompletions?>?>> {
+        return runCatching {
+            roomDatabase.habitDao().getHabitsWithCompletions()
         }
     }
 

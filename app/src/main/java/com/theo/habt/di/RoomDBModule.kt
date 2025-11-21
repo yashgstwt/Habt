@@ -31,7 +31,7 @@ object RoomDBModule {
             klass = HabtDb::class.java,
             name = "HabtDb"
         )
-//            .fallbackToDestructiveMigration() // don't use this line in production app , this will erase all the data from existing database and creates new one
+            .fallbackToDestructiveMigration() // don't use this line in production app , this will erase all the data from existing database and creates new one
 //            .addMigrations(MIGRATION_1_2) //use this for production app
             .build()
 

@@ -1,104 +1,79 @@
-package com.theo.habt.presentation.components
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.theo.habt.ui.theme.blank
-import com.theo.habt.ui.theme.fiftyPercent
-import com.theo.habt.ui.theme.hundredPercent
-import com.theo.habt.ui.theme.seventyFivePercent
-import com.theo.habt.ui.theme.twentyFivePercent
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
-
-@Preview(showSystemUi = true)
+/**
+ * A GitHub-style heatmap that displays completions over time.
+ *
+ * @param modifier The modifier to be applied to the component.
+ * @param startDate The first day for which data is available. The heatmap will calculate the empty
+ *                  days of the week before this date to align the columns correctly.
+ * @param completions A list of booleans representing completion status for each consecutive day
+ *                    starting from `startDate`.
+ * @param completedColor The color to use for a completed day.
+ */
 @Composable
-fun Heatmap(modifier: Modifier= Modifier, noOfDays : Int = 30){
+fun Heatmap(
+    modifier: Modifier = Modifier,
+    startDate: LocalDate,
+    completions: List<Boolean>,
+    completedColor: Color
+) {
+    // A day is represented by a Boolean?
+    // true = completed, false = not completed, null = empty placeholder
+    val days: List<Boolean?>
 
-    Column(modifier = modifier) {
+    // --- 1. Data Preparation: The most important step ---
+    // We need to add null placeholders for the empty days at the start of the first week.
+    // DayOfWeek returns 1 for Monday, 7 for Sunday.
+    val paddingDays = startDate.dayOfWeek.value - 1
 
-        Text("This Month's Progress", fontSize = 20.sp , modifier = Modifier.padding(horizontal = 10.dp , vertical = 5.dp), color = Color.White)
+    // Create a new list with nulls for padding, followed by the actual completion data.
+    val paddedCompletions = List(paddingDays) { null } + completions
 
-        LazyVerticalGrid(
-            contentPadding = PaddingValues(10.dp),
-            columns = GridCells.Fixed(7),
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(15.dp))
-                .background(Color.LightGray)
-                .padding(5.dp),
+    // Chunk the padded list into weeks (columns). Each chunk will be a list of 7 days.
+    val weeks = paddedCompletions.chunked(7)
 
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+    // --- 2. Build the UI ---
+    // A Row that can scroll horizontally contains all our week columns.
+    Row(
+        modifier = modifier
+            .horizontalScroll(rememberScrollState()) // KEY: Makes the content scroll left and right
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp) // Space between each week column
+    ) {
+        // For each chunk of 7 days...
+        weeks.forEach { week ->
+            // ...create a Column to stack the 7 days vertically.
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp) // Space between each day box
+            ) {
+                // For each day in the week...
+                week.forEach { dayCompletion ->
+                    val color = when (dayCompletion) {
+                        true -> completedColor  // Day was completed
+                        false -> Color.Gray     // Day was not completed
+                        null -> Color.Transparent // An empty placeholder day
+                    }
 
-        ) {
-            items(noOfDays) { count ->
-                Box(
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color.Green),
-                    contentAlignment = Alignment.Center
-                ){
-                    Text((count+1).toString(), textAlign = TextAlign.Center , color = Color.White)
+                    // A simple Spacer is the most performant way to draw a colored box.
+                    Spacer(
+                        modifier = Modifier
+                            .size(20.dp) // The size of each day's box
+                            .clip(RoundedCornerShape(5.dp))
+                            .background(color)
+                    )
                 }
             }
         }
-
-        Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding( 10.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.LightGray) ,
-            horizontalArrangement = Arrangement.SpaceEvenly ,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            ProgressIndicator(percentage = 0, color = blank )
-            ProgressIndicator(percentage = 25 , color = twentyFivePercent)
-            ProgressIndicator(percentage = 50 , color = fiftyPercent)
-            ProgressIndicator(percentage = 75 , color = seventyFivePercent)
-            ProgressIndicator(percentage = 100 , color = hundredPercent)
-
-        }
     }
-}
-
-@Composable
-fun ProgressIndicator(color :Color = Color.Green, percentage :Int){
-
-
-    Row(modifier = Modifier.padding(5.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly ,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(25.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(color)
-        )
-        Text("${percentage}%", modifier = Modifier.padding(5.dp) , textAlign = TextAlign.Center , fontSize = 15.sp )
-    }
-
 }
