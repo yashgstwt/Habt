@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,7 +54,7 @@ fun ProgressMap(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = habitIcons.getValue(habit.icon),
+                    painter = painterResource( habitIcons.getValue(habit.icon)),
                     contentDescription = "icon",
                     modifier = Modifier
                         .size(40.dp)
@@ -63,6 +64,7 @@ fun ProgressMap(
                 )
                 Text(habit.name, fontSize = 25.sp, color = Color.White)
             }
+
             Icon(
                 imageVector = Icons.Default.Check,
                 contentDescription = "mark as done",

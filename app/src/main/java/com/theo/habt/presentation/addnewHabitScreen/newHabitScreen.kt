@@ -48,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -132,7 +133,7 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
                             .padding(horizontal = 10.dp),
                         contentDescription = "habit logo",
                         tint = Color.White,
-                        imageVector = habitIcons.getValue(habit.icon) //habitIcons[habit.icon]
+                        painter = painterResource( habitIcons.getValue(habit.icon)) //habitIcons[habit.icon]
                     )
 
                     Text(
@@ -271,7 +272,7 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
                                     .clickable {
                                         viewModal.updateIcon(icon.first)
                                     },
-                                imageVector = icon.second,
+                                painter = painterResource(icon.second),
                                 tint = Color.White,
                                 contentDescription = "icon"
                             )

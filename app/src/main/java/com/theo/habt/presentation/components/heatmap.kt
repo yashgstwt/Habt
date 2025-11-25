@@ -26,10 +26,9 @@ fun Heatmap(
     modifier: Modifier = Modifier,
     startDate: LocalDate,
     completions: List<Boolean>,
-    completedColor: Color
+    completedColor: Color = Color.Green
 ) {
-    // A day is represented by a Boolean?
-    // true = completed, false = not completed, null = empty placeholder
+
     val days: List<Boolean?>
 
     // --- 1. Data Preparation: The most important step ---

@@ -37,6 +37,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
         isCoreLibraryDesugaringEnabled = true
     }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -80,5 +85,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    // widget
+    // For AppWidgets support
+    implementation(libs.androidx.glance.appwidget)
+// For interop APIs with Material 2
+    implementation( libs.androidx.glance.material)
 
 }
