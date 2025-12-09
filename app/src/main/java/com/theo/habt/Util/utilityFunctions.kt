@@ -1,6 +1,7 @@
 package com.theo.habt.Util
 
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -11,4 +12,8 @@ fun convertLongToLocalDate(longDate : Long): String? {
     val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
     val formattedDate = date.format(formatter)
     return formattedDate
+}
+
+fun getCurrentDateInLong(): Long {
+    return LocalDate.now(ZoneId.systemDefault()).toEpochDay()
 }

@@ -15,3 +15,10 @@ data class HabitWithCompletions(
     )
     val completions: List<HabitCompletion>
 )
+
+
+data class HabitWithStatus(
+    @Embedded
+    val habit: Habit,
+    val isCompleted: Boolean
+)

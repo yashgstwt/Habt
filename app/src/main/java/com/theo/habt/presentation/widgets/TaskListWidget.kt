@@ -19,6 +19,8 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.text.Text
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -28,11 +30,28 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.components.Scaffold
 import androidx.glance.appwidget.components.TitleBar
+import androidx.glance.appwidget.lazy.items
 import androidx.glance.layout.Alignment
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.theo.habt.R
+import com.theo.habt.Util.getCurrentDateInLong
+import com.theo.habt.dataLayer.constants.habitIcons
+import com.theo.habt.dataLayer.localDb.HabitCompletion
+import com.theo.habt.dataLayer.repositorys.RoomDbRepo
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface WidgetEntryPoint {
+    val repo : RoomDbRepo
+}
 
 class TaskListWidget : GlanceAppWidget() {
 
@@ -40,15 +59,28 @@ class TaskListWidget : GlanceAppWidget() {
         context: Context,
         id: GlanceId
     ) {
+
+
+        val entryPoint  = EntryPointAccessors.fromApplication(context,WidgetEntryPoint::class.java )
+        val repo = entryPoint.repo
+
+        val habitList = repo.getAllHabitsForWidgetWithStatus(getCurrentDateInLong())
+
+
         provideContent {
 
             @Composable
             fun TaskItem(
                 bgColor: Color = Color.Black,
-                iconBgColor: Color = Color.Green,
-                checkBgColor: Color = Color.Green,
-                taskText: String
+                iconBgColor: Int,
+                taskText: String,
+                icon: String,
+                habitId: Int,
+                isCompleted: Boolean,
+                markASCompeted: (habitId: Int) -> Unit
             ) {
+
+                var isCompleted  =  remember { mutableStateOf(isCompleted) }
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -57,7 +89,6 @@ class TaskListWidget : GlanceAppWidget() {
                         .padding(horizontal = 8.dp , vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left Icon (Hand/Stop)
 
                     Row( modifier = GlanceModifier
                         .defaultWeight()
@@ -70,19 +101,18 @@ class TaskListWidget : GlanceAppWidget() {
                         Box(
                             modifier = GlanceModifier
                                 .size(40.dp)
-                                .background(iconBgColor)
+                                .background(ColorProvider(Color(iconBgColor)))
                                 .cornerRadius(25.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                provider = ImageProvider(R.drawable.android),
+                                provider = ImageProvider(habitIcons[icon]!!),
                                 contentDescription = "Task Icon",
                                 modifier = GlanceModifier.size(24.dp),
                                 colorFilter = ColorFilter.tint(GlanceTheme.colors.surface)
                             )
                         }
 
-                        // Middle Text
                         Text(
                             text = taskText,
                             style = TextStyle(
@@ -97,19 +127,21 @@ class TaskListWidget : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.size(10.dp))
 
-                    // Right Icon (Checkmark)
                     Box(
                         modifier = GlanceModifier
                             .size(50.dp)
-                            .background(checkBgColor)
+                            .background(if(isCompleted.value) GlanceTheme.colors.primary else GlanceTheme.colors.error)
                             .cornerRadius(25.dp)
                             .clickable {
-                                // Handle click (e.g., ActionCallback)
+                                markASCompeted(habitId)
+                                if(!isCompleted.value){
+                                    isCompleted.value = true
+                                }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            provider = ImageProvider(R.drawable.trending_up),
+                            provider = ImageProvider(R.drawable.done),
                             contentDescription = "Complete",
                             modifier = GlanceModifier.size(24.dp),
                             colorFilter = ColorFilter.tint(ColorProvider(Color.Black))
@@ -120,21 +152,38 @@ class TaskListWidget : GlanceAppWidget() {
 
             }
 
+            // main content for widget
+
             Scaffold(
                 backgroundColor = GlanceTheme.colors.surface,
                 titleBar = {
                     TitleBar(
                         startIcon = ImageProvider(resId = R.drawable.android),
-                        title = "Habt",
-                        textColor = GlanceTheme.colors.onSurface
+                        title = "Today's Task",
+                        textColor = GlanceTheme.colors.onSurface,
+                        iconColor = GlanceTheme.colors.onSurface
                     )
                 }
             ) {
                 LazyColumn (modifier = GlanceModifier.fillMaxSize()) {
-                    items(5){ i->
 
-                        TaskItem(taskText = "TAsk $i")
+                    if (habitList.isNotEmpty()){
 
+                        items(habitList){ i->
+
+                            TaskItem(
+                                iconBgColor = i.habit.colorArgb,
+                                taskText = i.habit.name,
+                                icon = i.habit.icon,
+                                habitId = i.habit.id,
+                                isCompleted = i.isCompleted
+                            ) { habitId ->
+
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    repo.insertHabitCompletion(HabitCompletion(habitId = habitId, isCompleted = true , completionDate = getCurrentDateInLong()))
+                                }
+                            }
+                        }
                     }
                 }
             }

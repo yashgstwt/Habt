@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
@@ -73,9 +74,7 @@ fun ProgressMap(
                     .clip(RoundedCornerShape(25.dp))
                     .background(Color(habit.colorArgb))
                     .clickable {
-                        markAsComplete(HabitCompletion(habitId = habit.id , isCompleted = true , completionDate = LocalDate.now(ZoneId.systemDefault()).toEpochDay()))
-                        Log.d("today'sDate","In days"+LocalDate.now(ZoneId.systemDefault()).toEpochDay().toString() )
-                        Log.d("today'sDate","In formated "+  LocalDate.ofEpochDay(LocalDate.now(ZoneId.systemDefault()).toEpochDay()).dayOfMonth)
+                        markAsComplete(HabitCompletion(habitId = habit.id , isCompleted = true , completionDate = getCurrentDateInLong()))
                     }
             )
         }

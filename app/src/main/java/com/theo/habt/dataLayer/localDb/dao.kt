@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.HabitWithCompletions
+import com.theo.habt.dataLayer.constants.HabitWithStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -26,6 +28,31 @@ interface HabitDAO {
     @Query("SELECT * FROM habits")
     fun getHabitsWithCompletions(): Flow<List<HabitWithCompletions?>?>
 
+
+
+    @Query("""
+        SELECT 
+            habits.*, 
+            EXISTS (
+                SELECT 1 FROM habit_completions 
+                WHERE habit_id = habits.id AND completion_date = :date
+            ) as isCompleted
+        FROM habits
+    """)
+    suspend fun getHabitsWithStatusForDate(date: Long): List<HabitWithStatus>
+
+
+    @Query("""
+        SELECT
+            habits.*,
+            EXISTS (
+                SELECT 1 FROM habit_completions
+                WHERE habit_id = habits.id AND completion_date = :date
+            ) as isCompleted
+        FROM habits
+    """)
+     fun getHabitsWithStatusForDateFlow(date: Long): Flow<List<HabitWithStatus>>
+
 }
 
 @Dao
@@ -39,5 +66,6 @@ interface HabitCompletionDAO {
 
     @Delete
     suspend fun deleteHabitCompletion(habitCompletion: HabitCompletion)
+
 
 }

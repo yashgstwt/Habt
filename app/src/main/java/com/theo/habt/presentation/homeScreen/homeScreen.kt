@@ -1,6 +1,7 @@
 package com.theo.habt.presentation.homeScreen
 
 import ProgressMap
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -18,6 +19,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,12 +43,30 @@ import com.theo.habt.presentation.components.smile
 import com.theo.habt.presentation.components.superHappy
 
 
+
+
+fun getReaction (percentage : Float ): Reactions {
+
+    Log.d("percentageCount", percentage.toString())
+    return when (percentage) {
+        in 0f..25f             -> Reactions.ANGRY
+        in 26f..50f            -> Reactions.DISAPPOINTED
+        in 51f..65f            -> Reactions.NEUTRAL
+        in 66f..80f            -> Reactions.SMILE
+        else                 -> Reactions.SUPER_HAPPY
+    }
+}
+
 @Preview(showSystemUi = true)
 @Composable
 fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScreen: () -> Unit = {}) {
 
-    var reaction by remember { mutableStateOf(Reactions.SMILE) }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var reaction by remember { mutableStateOf(getReaction(state.habitWithCurrDateCompletionStatus)) }
+
+    LaunchedEffect(state.habitWithCurrDateCompletionStatus) {
+        reaction = getReaction(state.habitWithCurrDateCompletionStatus)
+    }
 
 
     val color = when(reaction){
@@ -100,31 +120,8 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
                         reactions = reaction
                     )
                 }
-
-
-
-
-//
-//                Heatmap(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(160.dp), // Give it a fixed height
-//                    startDate = LocalDate.now()
-//                        .minusDays(state.habitCompletionList.size.toLong() - 1),
-//                    completions = viewModel.getHeatmapForMonthArray(year = 2025, month = 11)
-//                        .toList(),
-//                    completedColor = Color.Green
-//                )
             }
 
-
-//            items(
-//                items = state.habitsWithCompletions,
-//            ) { habit ->
-//                habit?.let {
-//                    ProgressMap(habit =  habit , completions =  state.habitCompletionList.toList())
-//                }
-//            }
 
             items(state.habitsWithCompletions?.size ?: 0 ){ item ->
                 state.habitsWithCompletions?.get(item)?.let {

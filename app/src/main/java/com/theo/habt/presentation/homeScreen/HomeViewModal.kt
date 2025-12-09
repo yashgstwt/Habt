@@ -3,12 +3,15 @@ package com.theo.habt.presentation.homeScreen
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.theo.habt.Util.getCurrentDateInLong
+import com.theo.habt.dataLayer.constants.HabitWithStatus
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.repositorys.RepositoryError
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -29,7 +32,8 @@ data class HomeUiState(
     val habits : List<Habit?> = emptyList(),
     val habitsWithCompletions: List<HabitWithCompletion?>? = emptyList(),
     val isLoading : Boolean = false,
-    val habitCompletionList: List<Boolean> = emptyList()
+    val habitCompletionList: List<Boolean> = emptyList(),
+    val habitWithCurrDateCompletionStatus : Float = 0f
 )
 
 
@@ -44,10 +48,10 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
         initialValue = HomeUiState()
     )
 
+
     init {
-
         getHabitWithCompletions()
-
+        getHabitCompletionCurrStatus()
     }
 
     fun markAsCompleted(habitCompletion: HabitCompletion) {
@@ -84,6 +88,25 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
             }
         }
     }
+
+
+    fun getHabitCompletionCurrStatus(){
+        viewModelScope.launch {
+
+            roomDbRepo.getAllHabitsForWidgetWithStatusFlow(getCurrentDateInLong()).collect { value ->
+                    var noOfCompletions = 0
+                    value.forEach {
+                        if (it.isCompleted) noOfCompletions++
+                    }
+                val percent = (noOfCompletions.toFloat()/value.size.toFloat())*100
+
+                _state.update {
+                    it.copy(habitWithCurrDateCompletionStatus = percent)
+                }
+            }
+        }
+    }
+
 
 
     fun getHabits(){

@@ -2,19 +2,21 @@ package com.theo.habt.dataLayer.repositorys
 
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
-import android.util.StateSet
 import androidx.sqlite.SQLiteException
+import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.HabitWithCompletions
+import com.theo.habt.dataLayer.constants.HabitWithStatus
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.localDb.HabtDb
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 interface RoomDbRepoInter{
 
     suspend fun getAllHabits() : Result<Flow<List<Habit?>>>
+    suspend fun getAllHabitsForWidgetWithStatus(date :Long ) : List<HabitWithStatus>
+     fun getAllHabitsForWidgetWithStatusFlow(date :Long ) : Flow<List<HabitWithStatus>>
 
     suspend fun insertHabit(habit : Habit): Result<Unit>
 
@@ -27,6 +29,8 @@ interface RoomDbRepoInter{
     suspend fun deleteHabitCompletion(habitCompletion: HabitCompletion):Result<Unit>
 
     suspend fun getHabitWithCompletions() : Result<Flow<List<HabitWithCompletions?>?>>
+
+
 }
 
 
@@ -44,6 +48,17 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
                 throw RepositoryError.RoomErrors.FetchingFailed("Unexpected error while fetching habits ")
             }
         }
+    }
+
+
+
+    override suspend fun getAllHabitsForWidgetWithStatus(date: Long): List<HabitWithStatus> {
+
+        return roomDatabase.habitDao().getHabitsWithStatusForDate(date)
+    }
+
+    override  fun getAllHabitsForWidgetWithStatusFlow(date: Long): Flow<List<HabitWithStatus>> {
+        return roomDatabase.habitDao().getHabitsWithStatusForDateFlow(date)
     }
 
     override suspend fun insertHabit(habit: Habit): Result<Unit> {
@@ -71,7 +86,7 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
                 roomDatabase.habitDao().deleteHabit(habit)
 
             }catch (e :Exception ){
-
+                Log.e("RoomError", e.toString())
             }
 
         }
@@ -112,5 +127,7 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
             roomDatabase.habitDao().getHabitsWithCompletions()
         }
     }
+
+
 
 }
