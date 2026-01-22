@@ -91,8 +91,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
             }
         }
     ) { paddingValues ->
-
-        val pd = paddingValues
+        val paddingValues = paddingValues
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()

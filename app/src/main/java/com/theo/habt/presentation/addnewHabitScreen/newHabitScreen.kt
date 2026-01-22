@@ -2,6 +2,7 @@ package com.theo.habt.presentation.addnewHabitScreen
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -20,9 +22,11 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -39,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -56,6 +62,9 @@ import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.notificationService.HabitScheduler
 import com.theo.habt.presentation.components.CongratulationsCard
 import com.theo.habt.presentation.components.TimePicker
+import com.theo.habt.ui.theme.HabitTextField
+import com.theo.habt.ui.theme.borderColor
+import com.theo.habt.ui.theme.textFieldTheme
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("DefaultLocale")
@@ -83,16 +92,12 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
 
             Text("Habit Name" , color = Color.White , fontSize = 20.sp , modifier = Modifier.padding(10.dp) )
 
-            TextField(
-                value = habit.name,
-                onValueChange = { newText ->
-                                    viewModal.updateName(newText)
-                                },
-                label = { Text("Enter your Habit Name") },
-                shape = RoundedCornerShape(15.dp),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
+
+            val inputText =  rememberTextFieldState()
+
+//            Text("Enter")
+            HabitTextField(state= inputText, placeholder = "Enter Habit Name " , cursorColor = Color(habit.colorArgb))
+
 
             Row(
                 modifier = Modifier
@@ -109,6 +114,16 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
                     modifier = Modifier
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(15.dp))
+                        .border(
+                            width = 1.dp,
+                            brush =  Brush.linearGradient(
+                                0.0f to borderColor,
+                                .7f to Color.Black,
+                                start = Offset(10.0f, 0.0f),
+                                end = Offset(100.0f, 100.0f)
+                            ),
+                            shape = RoundedCornerShape(15.dp)
+                        )
                         .background(Color.DarkGray)
                         .padding(horizontal = 10.dp)
                         .clickable(
@@ -140,6 +155,16 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
                     modifier = Modifier
                         .wrapContentHeight()
                         .clip(RoundedCornerShape(15.dp))
+                        .border(
+                            width = 1.dp,
+                            brush =  Brush.linearGradient(
+                                0.0f to borderColor,
+                                .7f to Color.Black,
+                                start = Offset(10.0f, 0.0f),
+                                end = Offset(100.0f, 100.0f)
+                            ),
+                            shape = RoundedCornerShape(15.dp)
+                        )
                         .background(Color.DarkGray)
                         .clickable(
                             enabled = true,
@@ -327,11 +352,9 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
                             showTimePicker = false
                         },
                         onConfirm = { time ->
+                            Log.d("notificationMsg",  "selected time : ${time.hour} : ${time.minute} ")
                             viewModal.updateReminderTime(time.hour , time.minute)
                             showTimePicker = false
-
-                            val scheduler = HabitScheduler(context)
-                            scheduler.scheduleDailyNotification(time.hour , time.minute)
                         },
                     )
                 }
@@ -341,10 +364,18 @@ fun AddNewHabit(modifier: Modifier = Modifier , viewModal: NewHabitViewModal = h
         val alertsText = viewModal.alertMessage.collectAsStateWithLifecycle()
 
             Button(onClick = {
+                Log.d("notificationMsg",  "inside ${habit.time?.hour} :  ${habit.time?.minute} ")
 
+                viewModal.updateName(inputText.text.toString())
                 viewModal.insertHabit()
-
-            }) {
+                habit.time?.let {
+                    Log.d("notificationMsg",  "inside let block ")
+                    val scheduler = HabitScheduler(context, habit.name )
+                    scheduler.scheduleDailyNotification(it.hour, it.minute)
+                }
+            },
+                colors = ButtonColors(containerColor = Color(habit.colorArgb), contentColor = Color.White , disabledContainerColor = Color.DarkGray , disabledContentColor = Color.LightGray)
+            ) {
                 Text(text = "Submit")
             }
 

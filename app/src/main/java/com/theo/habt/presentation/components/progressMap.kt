@@ -1,5 +1,6 @@
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -20,6 +23,9 @@ import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
+import com.theo.habt.ui.theme.borderColor
+import com.theo.habt.ui.theme.progressMapContainer
+import com.theo.habt.ui.theme.progressMapContent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -38,8 +44,8 @@ fun ProgressMap(
         modifier = modifier
             .padding(10.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(15.dp))
-            .background(Color.DarkGray)
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(habit.colorArgb).copy(alpha = .25f))
             .padding(10.dp)
     ) {
 
@@ -90,7 +96,7 @@ fun ProgressMap(
                 ) {
                     rowItems.forEach { (day, isCompleted) ->
 
-                        val color = if (isCompleted) Color(habit.colorArgb) else Color.Gray
+                        val color = if (isCompleted) Color(habit.colorArgb) else progressMapContent
                         Box(
                             modifier = Modifier
                                 .weight(1f)

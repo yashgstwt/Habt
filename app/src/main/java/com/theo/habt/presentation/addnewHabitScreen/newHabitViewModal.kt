@@ -1,5 +1,6 @@
 package com.theo.habt.presentation.addnewHabitScreen
 
+import android.util.Log
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -69,8 +70,12 @@ class NewHabitViewModal @Inject constructor( private val roomDbRepo: RoomDbRepo 
     }
     fun updateReminderTime (hour : Int , min :Int){
         _habit.update {
+            Log.d("notificationMsg",  "inside updateReminderTime() update { : ${LocalTime.of(hour , min)} }" )
             _habit.value.copy(time = LocalTime.of(hour , min) )
+
         }
+
+        Log.d("notificationMsg",  "inside updateReminderTime : ${habit.value.time} " )
     }
 
 

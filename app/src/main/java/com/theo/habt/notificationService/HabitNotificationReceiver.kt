@@ -8,49 +8,55 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import java.util.Calendar
-import java.util.Date
-import java.util.concurrent.TimeUnit
+import com.theo.habt.R
 
 class HabitNotificationReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        // 1. Show the Notification
-        showNotification(context, "Time to read!", "Don't break your streak.")
 
-        //2.Reschedule the next notification for the next day
-        val scheduler = HabitScheduler(context)
-        val hour =  intent.getIntExtra("HOUR",12)
+    override fun onReceive(context: Context, intent: Intent) {
+
+        val habitName = intent.getStringExtra("HABIT_NAME") ?: "your habit"
+        val hour = intent.getIntExtra("HOUR", 12)
         val min = intent.getIntExtra("MIN", 0)
-        val timeInMs = intent.getLongExtra("timeInMs", System.currentTimeMillis())
-        scheduler.scheduleDailyNotification(hour,min, timeInMs) .also {
-            Log.d("notificationMsg",  " : rescheduled for next day " + Date(timeInMs).toString() + " reschedule in millis : ${timeInMs}" )
-        }
+
+        Log.d("notificationMsg", "Alarm received for $habitName")
+
+        showNotification(
+            context,
+            "Time for $habitName",
+            "Don't break your streak!"
+        )
+
+        // Reschedule for next day
+        HabitScheduler(context, habitName)
+            .scheduleDailyNotification(hour, min)
     }
 
-    private fun showNotification(context: Context, title: String, message: String) {
+    private fun showNotification(
+        context: Context,
+        title: String,
+        message: String
+    ) {
         val channelId = "habit_channel"
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        // Create Channel (Required for Android 8+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 channelId,
                 "Habit Reminders",
                 NotificationManager.IMPORTANCE_HIGH
             )
-            notificationManager.createNotificationChannel(channel)
-            Log.d("notificationMsg", "rached : in noification channel() of broadcast reciver ")
-
+            manager.createNotificationChannel(channel)
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm) // Replace with your app icon
+            .setSmallIcon(R.drawable.android) // use your icon
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(1, notification)
+        manager.notify(System.currentTimeMillis().toInt(), notification)
     }
 }

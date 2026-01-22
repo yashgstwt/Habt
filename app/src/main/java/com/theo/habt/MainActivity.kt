@@ -34,12 +34,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             Surface {
                 val navController = rememberNavController()
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
 
                     NavHost(
                         navController = navController,
                         startDestination = NavigationRouts.Home,
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         composable<NavigationRouts.Home> {
 
@@ -55,7 +54,7 @@ class MainActivity : ComponentActivity() {
                         composable<NavigationRouts.Analytic> {
                             AnalyticScreen()
                         }
-                    }
+
                 }
             }
         }

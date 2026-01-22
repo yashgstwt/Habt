@@ -9,6 +9,7 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
 // heatmap colors
 val hundredPercent = Color(0xFF00FF44)
 val seventyFivePercent = Color(0xFF00A619)
@@ -17,7 +18,9 @@ val fiftyPercent = Color(0xFF529A4B)
 val twentyFivePercent = Color(0xFF0F4C00)
 val blank = Color(0xFF565656)
 
-
+val progressMapContainer  = Color(0xCB252525)
+val progressMapContent  = Color(0xFF000000)
+val borderColor =  Color(0xFFCCCCCC)
 
 val colorPallet = listOf<Color>(
     Color(0xFF009688),
