@@ -126,7 +126,6 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
                 state.habitsWithCompletions?.get(item)?.let {
                     ProgressMap(habit =  it.habit!! , completions =  it.habitCompletions ){ habitCompletion ->
                         viewModel.markAsCompleted(habitCompletion)
-
                     }
                 }
             }

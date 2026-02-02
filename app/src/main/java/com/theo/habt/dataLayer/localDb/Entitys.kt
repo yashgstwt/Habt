@@ -1,6 +1,7 @@
 package com.theo.habt.dataLayer.localDb
 
 import androidx.room.ColumnInfo
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -10,7 +11,7 @@ import java.time.LocalTime
 
 
 @Entity(
-    tableName = "habits" ,
+    tableName = "habits",
     indices = [Index(value = ["name"], unique = true)]
 )
 data class Habit(
@@ -59,7 +60,15 @@ data class HabitCompletion(
     @ColumnInfo(name = "completion_date")
     val completionDate: Long?,
 
-    @ColumnInfo(name="is_completed")
+    @ColumnInfo(name = "is_completed")
     val isCompleted: Boolean
 
+)
+
+@Entity(tableName = "next_Habit_schedule")
+data class NextHabitSchedule(
+    @ColumnInfo(name = "habit")
+    val habit: Int,
+    @ColumnInfo(name = "date" )
+    val date : Long
 )

@@ -36,9 +36,9 @@ import java.time.ZonedDateTime
 @Composable
 fun ProgressMap(
     modifier: Modifier = Modifier,
-    habit: Habit = Habit(name = "some" , colorArgb = -15124 , creationDate = 5485316354, icon = ""),
+    habit: Habit = Habit(name = "some", colorArgb = -15124, creationDate = 5485316354, icon = ""),
     completions: List<List<Pair<Int, Boolean>>>,
-    markAsComplete : (habitCompletion : HabitCompletion)-> Unit
+    markAsComplete: (habitCompletion: HabitCompletion) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -61,7 +61,7 @@ fun ProgressMap(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource( habitIcons.getValue(habit.icon)),
+                    painter = painterResource(habitIcons.getValue(habit.icon)),
                     contentDescription = "icon",
                     modifier = Modifier
                         .size(40.dp)
@@ -80,7 +80,13 @@ fun ProgressMap(
                     .clip(RoundedCornerShape(25.dp))
                     .background(Color(habit.colorArgb))
                     .clickable {
-                        markAsComplete(HabitCompletion(habitId = habit.id , isCompleted = true , completionDate = getCurrentDateInLong()))
+                        markAsComplete(
+                            HabitCompletion(
+                                habitId = habit.id,
+                                isCompleted = true,
+                                completionDate = getCurrentDateInLong()
+                            )
+                        )
                     }
             )
         }
@@ -92,7 +98,7 @@ fun ProgressMap(
             completions.forEach { rowItems ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround ,
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     rowItems.forEach { (day, isCompleted) ->
 
@@ -102,7 +108,8 @@ fun ProgressMap(
                                 .weight(1f)
                                 .aspectRatio(1f)
                                 .padding(5.dp)
-                                .clip(RoundedCornerShape(10.dp)).background(color),
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(color),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(day.toString(), textAlign = TextAlign.Center, color = Color.White)

@@ -22,27 +22,25 @@ import java.util.Calendar
 import kotlin.collections.chunked
 
 
-
-data class HabitWithCompletion (
+data class HabitWithCompletion(
     val habit: Habit?,
-    val habitCompletions:  List<List<Pair<Int, Boolean>>>
+    val habitCompletions: List<List<Pair<Int, Boolean>>>
 )
 
 data class HomeUiState(
-    val habits : List<Habit?> = emptyList(),
+    val habits: List<Habit?> = emptyList(),
     val habitsWithCompletions: List<HabitWithCompletion?>? = emptyList(),
-    val isLoading : Boolean = false,
+    val isLoading: Boolean = false,
     val habitCompletionList: List<Boolean> = emptyList(),
-    val habitWithCurrDateCompletionStatus : Float = 0f
+    val habitWithCurrDateCompletionStatus: Float = 0f
 )
 
 
-
 @HiltViewModel
-class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : ViewModel() {
+class HomeViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : ViewModel() {
 
-    private val _state =  MutableStateFlow(HomeUiState())
-    val state =  _state.stateIn(
+    private val _state = MutableStateFlow(HomeUiState())
+    val state = _state.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 2000),
         initialValue = HomeUiState()
@@ -61,25 +59,37 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
     }
 
 
-    fun getHabitWithCompletions(month: Int = LocalDate.now().month.value, year:Int  = LocalDate.now().year){
+    fun getHabitWithCompletions(
+        month: Int = LocalDate.now().month.value,
+        year: Int = LocalDate.now().year
+    ) {
         viewModelScope.launch {
             roomDbRepo.getHabitWithCompletions().onSuccess { flow ->
-                    flow.collect { value ->
-                        val habitWithHeatList = mutableListOf<HabitWithCompletion>()
+                flow.collect { value ->
+                    val habitWithHeatList = mutableListOf<HabitWithCompletion>()
 
-                        value?.forEach {
-                            habitWithHeatList.add(HabitWithCompletion(it?.habit, habitCompletions = getHeatmapForMonthArray(it?.completions, year = year , month = month)))
-                        }
-
-                        _state.update {
-                            it.copy(habitsWithCompletions = habitWithHeatList)
-                        }
+                    value?.forEach {
+                        habitWithHeatList.add(
+                            HabitWithCompletion(
+                                it?.habit,
+                                habitCompletions = getHeatmapForMonthArray(
+                                    it?.completions,
+                                    year = year,
+                                    month = month
+                                )
+                            )
+                        )
                     }
 
+                    _state.update {
+                        it.copy(habitsWithCompletions = habitWithHeatList)
+                    }
+                }
+
             }.onFailure { exception ->
-                when(exception){
+                when (exception) {
                     is RepositoryError.RoomErrors.FetchingFailed -> {
-                        Log.d( "habitError",RepositoryError.RoomErrors.FetchingFailed().msg)
+                        Log.d("habitError", RepositoryError.RoomErrors.FetchingFailed().msg)
                         _state.update {
                             it.copy(isLoading = true)
                         }
@@ -90,69 +100,70 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
     }
 
 
-    fun getHabitCompletionCurrStatus(){
+    fun getHabitCompletionCurrStatus() {
         viewModelScope.launch {
 
-            roomDbRepo.getAllHabitsForWidgetWithStatusFlow(getCurrentDateInLong()).collect { value ->
+            roomDbRepo.getAllHabitsForWidgetWithStatusFlow(getCurrentDateInLong())
+                .collect { value ->
                     var noOfCompletions = 0
                     value.forEach {
                         if (it.isCompleted) noOfCompletions++
                     }
-                val percent = (noOfCompletions.toFloat()/value.size.toFloat())*100
+                    val percent = (noOfCompletions.toFloat() / value.size.toFloat()) * 100
 
-                _state.update {
-                    it.copy(habitWithCurrDateCompletionStatus = percent)
+                    _state.update {
+                        it.copy(habitWithCurrDateCompletionStatus = percent)
+                    }
+                }
+        }
+    }
+
+
+    fun getHabits() {
+
+        _state.update {
+            it.copy(isLoading = true)
+        }
+        viewModelScope.launch {
+
+            roomDbRepo.getAllHabits().onSuccess { list ->
+
+                list.collect { habits ->
+                    _state.update {
+                        it.copy(habits = habits)
+                    }
+                }
+
+            }.onFailure { exception ->
+                when (exception) {
+                    is RepositoryError.RoomErrors.FetchingFailed -> {
+                        Log.d("habitError", RepositoryError.RoomErrors.FetchingFailed().msg)
+                    }
                 }
             }
         }
     }
 
 
-
-    fun getHabits(){
-
-        _state.update {
-            it.copy(isLoading = true )
-        }
-        viewModelScope.launch {
-
-             roomDbRepo.getAllHabits().onSuccess {  list ->
-
-                 list.collect { habits ->
-                     _state.update {
-                         it.copy(habits = habits )
-                     }
-                 }
-
-             }.onFailure { exception ->
-                 when(exception){
-                     is RepositoryError.RoomErrors.FetchingFailed -> {
-                      Log.d( "habitError",RepositoryError.RoomErrors.FetchingFailed().msg)
-                     }
-                 }
-             }
-        }
-    }
-
-
     fun getHeatmapForMonthArray(
-        completedList: List<HabitCompletion?>? = null ,
+        completedList: List<HabitCompletion?>? = null,
         year: Int,
-        month: Int
-    ):  List<List<Pair<Int, Boolean>>> {
+        month: Int,
+        interval : Int = 1
+    ): List<List<Pair<Int, Boolean>>> {
         val calendar = Calendar.getInstance()
         calendar.set(year, month - 1, 1)
-        val maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        var maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+        maxDays /= interval
 
-        val daysArray: Array<Boolean> = Array(maxDays ){false}
+        val daysArray: Array<Boolean> = Array(maxDays) { false }
         completedList?.forEach { habit ->
             if (habit?.completionDate != null) {
 
                 val completionDate = LocalDate.ofEpochDay(habit.completionDate)
                 if (completionDate.year == year && completionDate.monthValue == month) {
                     val dayOfMonth = completionDate.dayOfMonth
-
-                    daysArray[dayOfMonth - 1] = true
+                    daysArray[dayOfMonth - (1 + (interval-1))] = true
                 }
             }
         }
@@ -160,12 +171,6 @@ class HomeViewModal  @Inject constructor( private val roomDbRepo: RoomDbRepo) : 
             Pair(index + 1, isCompleted)
         }.chunked(8)
 
-
         return dayRows
     }
-
-
-
-
-
 }
