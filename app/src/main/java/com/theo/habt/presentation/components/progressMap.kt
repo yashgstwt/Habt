@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -22,20 +21,113 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.glance.appwidget.lazy.LazyVerticalGrid
 import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.ui.theme.progressMapContent
+import kotlinx.coroutines.NonCancellable.isCompleted
 
+
+//@Composable
+//fun ProgressMap(
+//    modifier: Modifier = Modifier,
+//    habit: Habit = Habit(name = "some", colorArgb = -15124, creationDate = 5485316354, icon = ""),
+//    completions: List<Pair<Int, Boolean>>,
+//    markAsComplete: (HabitCompletion) -> Unit
+//) {
+//    Column(
+//        modifier = modifier
+//            .padding(10.dp)
+//            .fillMaxWidth()
+//            .clip(RoundedCornerShape(20.dp))
+//            .background(Color(habit.colorArgb).copy(alpha = .25f))
+//            .padding(10.dp)
+//    ) {
+//
+//        Row(
+//            horizontalArrangement = Arrangement.SpaceBetween,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(bottom = 25.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Row(
+//                horizontalArrangement = Arrangement.spacedBy(15.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(
+//                    painter = painterResource(habitIcons.getValue(habit.icon)),
+//                    contentDescription = "icon",
+//                    modifier = Modifier
+//                        .size(40.dp)
+//                        .clip(RoundedCornerShape(25.dp))
+//                        .background(Color(habit.colorArgb))
+//                        .padding(5.dp)
+//                )
+//                Text(habit.name, fontSize = 25.sp, color = Color.White)
+//            }
+//
+//            Icon(
+//                imageVector = Icons.Default.Check,
+//                contentDescription = "mark as done",
+//                modifier = Modifier
+//                    .size(40.dp)
+//                    .clip(RoundedCornerShape(25.dp))
+//                    .background(Color(habit.colorArgb))
+//                    .clickable {
+//                        markAsComplete(
+//                            HabitCompletion(
+//                                habitId = habit.id,
+//                                isCompleted = true,
+//                                completionDate = getCurrentDateInLong()
+//                            )
+//                        )
+//                    }
+//            )
+//        }
+//
+//
+//
+//        Column(
+//            verticalArrangement = Arrangement.spacedBy(5.dp)
+//        ) {
+//            completions.forEach { rowItems ->
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceAround,
+//                ) {
+//                    rowItems.forEach { (day, isCompleted) ->
+//
+//                        val color = if (isCompleted) Color(habit.colorArgb) else progressMapContent
+//                        Box(
+//                            modifier = Modifier
+//                                .weight(1f)
+//                                .aspectRatio(1f)
+//                                .padding(5.dp)
+//                                .clip(RoundedCornerShape(10.dp))
+//                                .background(color),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            Text(day.toString(), textAlign = TextAlign.Center, color = Color.White)
+//                        }
+//
+//                    }
+//                    repeat(8 - rowItems.size) {
+//                        Spacer(modifier = Modifier.weight(1f))
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun ProgressMap(
     modifier: Modifier = Modifier,
     habit: Habit = Habit(name = "some", colorArgb = -15124, creationDate = 5485316354, icon = ""),
-    completions: List<List<Pair<Int, Boolean>>>,
-    markAsComplete: (habitCompletion: HabitCompletion) -> Unit
+    completions: List<Pair<Int, Boolean>>,
+    markAsComplete: (HabitCompletion) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -87,38 +179,29 @@ fun ProgressMap(
                     }
             )
         }
-
-
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(5.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp),
+            contentAlignment = Alignment.Center
         ) {
-            completions.forEach { rowItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
+
+        LazyVerticalGrid(columns = GridCells.Fixed(8), userScrollEnabled = false) {
+            items(completions.size) { index ->
+                val completion = completions[index]
+                val color = if (completion.second) Color(habit.colorArgb) else progressMapContent
+                Box(
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .padding(5.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(color),
+                    contentAlignment = Alignment.Center
                 ) {
-                    rowItems.forEach { (day, isCompleted) ->
-
-                        val color = if (isCompleted) Color(habit.colorArgb) else progressMapContent
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f)
-                                .padding(5.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(color),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(day.toString(), textAlign = TextAlign.Center, color = Color.White)
-                        }
-
-                    }
-                    repeat(8 - rowItems.size) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
+                    Text(completion.first.toString(), textAlign = TextAlign.Center, color = Color.White)
                 }
             }
+        }
         }
     }
 }
@@ -128,8 +211,16 @@ fun ProgressMap(
 fun HeatMap360(
     modifier: Modifier = Modifier,
     habit: Habit = Habit(name = "some", colorArgb = -15124, creationDate = 5485316354, icon = ""),
-    completions: List<Pair<Int, Boolean>> = listOf(Pair (1,true),Pair (1,true),Pair (1,true),Pair (1,true),Pair (1,true),Pair (1,true),),
-    markAsComplete: (habitCompletion: HabitCompletion) -> Unit = {}
+    completions: List<Pair<Int, Boolean>> =
+        listOf(
+            Pair(1, true),
+            Pair(1, true),
+            Pair(1, true),
+            Pair(1, true),
+            Pair(1, true),
+            Pair(1, true),
+        ),
+    markAsComplete: (HabitCompletion) -> Unit = {}
 ) {
 
     Column(

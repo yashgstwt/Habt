@@ -1,6 +1,5 @@
 package com.theo.habt.presentation.homeScreen
 
-import com.theo.habt.presentation.components.ProgressMap
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -30,6 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.theo.habt.presentation.components.Face
+import com.theo.habt.presentation.components.HeatMap360
+import com.theo.habt.presentation.components.ProgressMap
 import com.theo.habt.presentation.components.Reactions
 import com.theo.habt.presentation.components.angry
 import com.theo.habt.presentation.components.disappointed
@@ -120,8 +121,19 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
 
             items(state.habitsWithCompletions?.size ?: 0 ){ item ->
                 state.habitsWithCompletions?.get(item)?.let {
-                    ProgressMap(habit =  it.habit!! , completions =  it.habitCompletions ){ habitCompletion ->
-                        viewModel.markAsCompleted(habitCompletion)
+
+                    if(it.habit?.interval!! >= 1 ){
+                        HeatMap360(
+                            habit =  it.habit ,
+                            completions =  it.habitCompletions ,
+                        ){ habitCompletion ->
+                            viewModel.markAsCompleted(habitCompletion)
+                        }
+
+                    } else {
+                        ProgressMap(habit =  it.habit , completions =  it.habitCompletions ){ habitCompletion ->
+                            viewModel.markAsCompleted(habitCompletion)
+                        }
                     }
                 }
             }
