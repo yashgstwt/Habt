@@ -35,3 +35,12 @@ fun isNotificationsEnabled(context: Context): Boolean {
         NotificationManagerCompat.from(context).areNotificationsEnabled()
     }
 }
+
+
+sealed class Response  {
+
+    data object Loading : Response()
+    data class Error(val message: String): Response()
+    data class Success<T>(val response : T ) : Response()
+
+}

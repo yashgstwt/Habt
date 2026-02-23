@@ -20,7 +20,7 @@ class HabitScheduler(
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun scheduleDailyNotification(hour: Int, min: Int) {
+    fun scheduleDailyNotification(hour: Int, min: Int ,interval :Int = 1) {
 
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata")).apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -30,7 +30,7 @@ class HabitScheduler(
 
             // If time already passed today → schedule tomorrow
             if (timeInMillis <= System.currentTimeMillis()) {
-                add(Calendar.DAY_OF_YEAR, 1)
+                add(Calendar.DAY_OF_YEAR, interval)
             }
         }
 
@@ -40,6 +40,7 @@ class HabitScheduler(
             putExtra("HABIT_NAME", habitName)
             putExtra("HOUR", hour)
             putExtra("MIN", min)
+            putExtra("INTERVAL", interval)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(

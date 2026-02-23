@@ -75,8 +75,8 @@ class HomeViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : Vi
                                 habitCompletions = getHeatmapForMonthArray(
                                     it?.completions,
                                     year = year,
-                                    month = month
-                                )
+                                    month = month,
+                                    interval = it?.habit!!.interval                                )
                             )
                         )
                     }
@@ -149,28 +149,30 @@ class HomeViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : Vi
         completedList: List<HabitCompletion?>? = null,
         year: Int,
         month: Int,
-        interval : Int = 1
+        interval: Int = 0
     ): List<List<Pair<Int, Boolean>>> {
-        val calendar = Calendar.getInstance()
-        calendar.set(year, month - 1, 1)
-        var maxDays = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-        maxDays /= interval
 
-        val daysArray: Array<Boolean> = Array(maxDays) { false }
-        completedList?.forEach { habit ->
+        val firstDayOfMonth = LocalDate.of(year, month, 1)
+        val maxDays = firstDayOfMonth.lengthOfMonth()
+
+        val completedDaysSet = completedList?.mapNotNull { habit ->
             if (habit?.completionDate != null) {
+                val date = LocalDate.ofEpochDay(habit.completionDate)
+                if (date.year == year && date.monthValue == month) date.dayOfMonth else null
+            } else null
+        }?.toSet() ?: emptySet()
 
-                val completionDate = LocalDate.ofEpochDay(habit.completionDate)
-                if (completionDate.year == year && completionDate.monthValue == month) {
-                    val dayOfMonth = completionDate.dayOfMonth
-                    daysArray[dayOfMonth - (1 + (interval-1))] = true
-                }
+        val dayList = (1..maxDays).mapNotNull { day ->
+
+            val isTargetDay = if (interval <= 0) true else (day - 1) % (interval + 1) == 0
+
+            if (isTargetDay) {
+                val isDone = completedDaysSet.contains(day)
+                Pair(day, isDone)
+            } else {
+                null
             }
         }
-        val dayRows = daysArray.mapIndexed { index, isCompleted ->
-            Pair(index + 1, isCompleted)
-        }.chunked(8)
 
-        return dayRows
-    }
-}
+        return dayList.chunked(8)
+    }}

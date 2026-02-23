@@ -69,3 +69,24 @@ interface HabitCompletionDAO {
 
 
 }
+
+
+@Dao
+interface NextHabitScheduleDAO{
+
+    @Insert
+    suspend fun insertNextHabitSchedule(habitSchedule: NextHabitSchedule)
+
+    @Query("UPDATE next_Habit_schedule Set date = :date WHERE habit_id = :habitID ")
+    suspend fun updateNextHabitSchedule(date : Long,habitID : Int )
+
+    @Delete
+    suspend fun deleteNextHabitSchedule(habitSchedule: NextHabitSchedule)
+
+    @Query("Select * FROM next_Habit_schedule WHERE habit_id = :habitId")
+    suspend fun getNextHabitsScheduleById(habitId :Int): NextHabitSchedule
+
+    @Query("SELECT * FROM next_Habit_schedule ")
+    fun getAllNextHabitSchedule(): Flow<List<NextHabitSchedule>>
+
+}

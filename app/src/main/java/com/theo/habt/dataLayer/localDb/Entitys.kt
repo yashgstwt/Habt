@@ -31,10 +31,12 @@ data class Habit(
     val creationDate: Long = 1L,
 
     @ColumnInfo(name = "reminder")
-    val reminder: LocalTime? = null
+    val reminder: LocalTime? = null,
+
+    @ColumnInfo(name= "interval")
+    val interval:Int = 0
 
 )
-
 
 @Entity(
     tableName = "habit_completions",
@@ -67,8 +69,10 @@ data class HabitCompletion(
 
 @Entity(tableName = "next_Habit_schedule")
 data class NextHabitSchedule(
-    @ColumnInfo(name = "habit")
-    val habit: Int,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = 0,
+    @ColumnInfo(name = "habit_id")
+    val habitID: Int,
     @ColumnInfo(name = "date" )
     val date : Long
 )

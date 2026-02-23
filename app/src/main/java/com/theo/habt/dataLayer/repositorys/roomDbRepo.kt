@@ -3,16 +3,20 @@ package com.theo.habt.dataLayer.repositorys
 import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import androidx.sqlite.SQLiteException
+import com.theo.habt.Util.Response
 import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.HabitWithCompletions
 import com.theo.habt.dataLayer.constants.HabitWithStatus
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
 import com.theo.habt.dataLayer.localDb.HabtDb
+import com.theo.habt.dataLayer.localDb.NextHabitSchedule
+import com.theo.habt.dataLayer.localDb.NextHabitScheduleDAO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-interface RoomDbRepoInter{
+interface RoomDbRepoInter  {
 
     suspend fun getAllHabits() : Result<Flow<List<Habit?>>>
     suspend fun getAllHabitsForWidgetWithStatus(date :Long ) : List<HabitWithStatus>
@@ -30,12 +34,20 @@ interface RoomDbRepoInter{
 
     suspend fun getHabitWithCompletions() : Result<Flow<List<HabitWithCompletions?>?>>
 
+    suspend fun insertNextHabitSchedule(habitSchedule: NextHabitSchedule)
+
+    suspend fun updateNextHabitSchedule(date: Long, habitID: Int)
+
+    suspend fun deleteNextHabitSchedule(habitSchedule: NextHabitSchedule)
+
+    suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response>
+
+    suspend fun getAllNextHabitSchedule(): Flow<Response>
 
 }
 
 
 class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDbRepoInter{
-
     override suspend fun getAllHabits(): Result<Flow<List<Habit?>>> {
         return runCatching {
             try {
@@ -128,6 +140,36 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
         }
     }
 
+    override suspend fun insertNextHabitSchedule(habitSchedule: NextHabitSchedule) {
+        roomDatabase.NextHabitScheduleDAO().insertNextHabitSchedule(habitSchedule)
+    }
 
+    override suspend fun updateNextHabitSchedule(date: Long, habitID: Int) {
+        roomDatabase.NextHabitScheduleDAO().updateNextHabitSchedule(date, habitID)
+    }
 
+    override suspend fun deleteNextHabitSchedule(habitSchedule: NextHabitSchedule) {
+    }
+
+    override suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response> {
+        return flow {
+            emit(Response.Loading)
+            try {
+                emit(Response.Success(roomDatabase.NextHabitScheduleDAO().getNextHabitsScheduleById(habitId)))
+            }catch (e: Exception ){
+                emit(Response.Error("Failed to fetch the data"))
+            }
+        }
+    }
+
+    override suspend fun getAllNextHabitSchedule(): Flow<Response> {
+        return flow {
+                emit(Response.Loading)
+            try {
+                emit(Response.Success(roomDatabase.NextHabitScheduleDAO().getAllNextHabitSchedule()))
+            }catch (e : Exception){
+                emit(Response.Error("Failed to load data"))
+            }
+        }
+    }
 }

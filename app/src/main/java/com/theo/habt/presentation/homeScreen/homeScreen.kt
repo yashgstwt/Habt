@@ -1,15 +1,13 @@
 package com.theo.habt.presentation.homeScreen
 
-import ProgressMap
+import com.theo.habt.presentation.components.ProgressMap
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,13 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.theo.habt.R
 import com.theo.habt.presentation.components.Face
 import com.theo.habt.presentation.components.Reactions
 import com.theo.habt.presentation.components.angry
@@ -67,6 +62,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
     LaunchedEffect(state.habitWithCurrDateCompletionStatus) {
         reaction = getReaction(state.habitWithCurrDateCompletionStatus)
     }
+
 
 
     val color = when(reaction){

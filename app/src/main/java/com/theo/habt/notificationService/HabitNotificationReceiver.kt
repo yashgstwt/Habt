@@ -17,7 +17,7 @@ class HabitNotificationReceiver : BroadcastReceiver() {
         val habitName = intent.getStringExtra("HABIT_NAME") ?: "your habit"
         val hour = intent.getIntExtra("HOUR", 12)
         val min = intent.getIntExtra("MIN", 0)
-
+        val interval = intent.getIntExtra("INTERVAL", 1)
         Log.d("notificationMsg", "Alarm received for $habitName")
 
         showNotification(
@@ -28,7 +28,7 @@ class HabitNotificationReceiver : BroadcastReceiver() {
 
         // Reschedule for next day
         HabitScheduler(context, habitName)
-            .scheduleDailyNotification(hour, min)
+            .scheduleDailyNotification(hour, min , interval)
     }
 
     private fun showNotification(

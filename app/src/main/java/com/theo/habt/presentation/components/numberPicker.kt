@@ -43,7 +43,7 @@ fun VerticalNumberPicker(
     }.toList()
 
     val initialScrollIndex = remember {
-        initialValue - (range.first - 2)
+        initialValue
     }
 
     LaunchedEffect(Unit) {

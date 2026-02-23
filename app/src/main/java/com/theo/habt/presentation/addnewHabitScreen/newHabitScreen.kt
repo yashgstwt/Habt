@@ -329,8 +329,7 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                     }
                 }
             }
-
-            val interval by remember { mutableIntStateOf(0) }
+            val selectedDayInterval = remember { mutableIntStateOf(habit.interval) }
             val radioOptions = HabitFrequencyType.entries
             val selectedOption = remember { mutableStateOf(radioOptions[0]) }
             Column(modifier.selectableGroup()) {
@@ -345,7 +344,6 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                                     selectedOption.value = text
                                     if (selectedOption.value == radioOptions[1]) {
                                         showIntervalPicker.value = true
-                                        Log.d("selectedOption" , "$showIntervalPicker and clicked ")
                                     }
                                    },
                                 role = Role.RadioButton
@@ -358,7 +356,7 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                             onClick = null
                         )
                         Text(
-                            text = text.toString(),
+                            text = if(text == radioOptions[1]) text.toString()+" (After Every ${selectedDayInterval.intValue} Days) "  else text.toString(),
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier.padding(start = 16.dp),
                             color = Color.White
@@ -368,10 +366,15 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                 }
             }
 
-            val selectedDayInterval = remember { mutableIntStateOf(2) }
             if (showIntervalPicker.value) {
                 Dialog(onDismissRequest = {
                     showIntervalPicker.value = false
+                    Log.d("selectedOption" , " ${selectedDayInterval.intValue}")
+
+                    selectedOption.value = radioOptions[0]
+                    selectedDayInterval.intValue = 1
+                    Log.d("selectedOption" , "${selectedOption.value} and ${selectedDayInterval.intValue}")
+
                 }) {
                     Column(
                         modifier = Modifier.clip(RoundedCornerShape(25.dp)).background(Color.DarkGray).padding(20.dp),
@@ -388,11 +391,16 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                         VerticalNumberPicker(
                             modifier = Modifier,
                             range = IntRange(2, 7),
-                            initialValue = 2,
+                            initialValue = selectedDayInterval.intValue,
                             onValueSelected = { value ->
                                 selectedDayInterval.intValue = value;
                             }
                         )
+                        Button(onClick = {
+                            showIntervalPicker.value = false
+                        }) {
+                            Text("Select" , fontSize = 15.sp)
+                        }
                     }
                 }
             }
@@ -477,7 +485,7 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
             }
 
             if (showTimePicker) {
-                Dialog(onDismissRequest = { showTimePicker = false }) {
+                BasicAlertDialog(onDismissRequest = { showTimePicker = false }) {
                     TimePicker(
                         onDismiss = {
                             showTimePicker = false
@@ -502,11 +510,12 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
                     Log.d("notificationMsg", "inside ${habit.time?.hour} :  ${habit.time?.minute} ")
 
                     viewModal.updateName(inputText.text.toString())
+                    viewModal.updateInterval(selectedDayInterval.intValue)
                     viewModal.insertHabit()
                     habit.time?.let {
                         Log.d("notificationMsg", "inside let block ")
                         val scheduler = HabitScheduler(context, habit.name)
-                        scheduler.scheduleDailyNotification(it.hour, it.minute)
+                        scheduler.scheduleDailyNotification(it.hour, it.minute , habit.interval)
                     }
                 },
                 colors = ButtonColors(
@@ -557,7 +566,7 @@ fun AddNewHabit(modifier: Modifier = Modifier, viewModal: NewHabitViewModal = hi
             }
 
             if (habit.showSuccessMessage) {
-                AlertDialog(onDismissRequest = {
+                BasicAlertDialog(onDismissRequest = {
                     viewModal.updateShowSuccessMessage(false)
                 }) {
                     CongratulationsCard()
