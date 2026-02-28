@@ -14,6 +14,7 @@ import com.theo.habt.dataLayer.localDb.NextHabitSchedule
 import com.theo.habt.dataLayer.localDb.NextHabitScheduleDAO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 interface RoomDbRepoInter  {
@@ -22,6 +23,10 @@ interface RoomDbRepoInter  {
     suspend fun getAllHabitsForWidgetWithStatus(date :Long ) : List<HabitWithStatus>
      fun getAllHabitsForWidgetWithStatusFlow(date :Long ) : Flow<List<HabitWithStatus>>
 
+    suspend fun getHabitWithCompletionsInRange(
+        startDate: Long,
+        endDate: Long
+    ): Result<Flow<List<HabitWithCompletions>>>
     suspend fun insertHabit(habit : Habit): Result<Unit>
 
     suspend fun deleteHabit(habit: Habit) : Result<Unit>
@@ -58,6 +63,26 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
                 Log.e("RoomDbRepo", "Database error while getting all habits", e)
 
                 throw RepositoryError.RoomErrors.FetchingFailed("Unexpected error while fetching habits ")
+            }
+        }
+    }
+
+    // In RoomDbRepo.kt
+
+    override suspend fun getHabitWithCompletionsInRange(
+        startDate: Long,
+        endDate: Long
+    ): Result<Flow<List<HabitWithCompletions>>> {
+        return runCatching {
+
+            roomDatabase.habitDao().getHabitsWithCompletionsInRange(startDate, endDate).map { flatList ->
+                flatList.groupBy { it.habit }.map { (habit, joins) ->
+                    HabitWithCompletions(
+                        habit = habit,
+                        // Filter out nulls (where the LEFT JOIN found no completion for that date)
+                        completions = joins.mapNotNull { it.completion }
+                    )
+                }
             }
         }
     }

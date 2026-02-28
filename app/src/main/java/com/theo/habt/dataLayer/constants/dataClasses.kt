@@ -16,6 +16,16 @@ data class HabitWithCompletions(
     val completions: List<HabitCompletion>
 )
 
+data class HabitCompletionJoin(
+    @Embedded
+    val habit: Habit,
+
+    // We use a prefix so Room doesn't get confused by two "id" columns
+    @Embedded(prefix = "comp_")
+    val completion: HabitCompletion?
+)
+
+
 
 data class HabitWithStatus(
     @Embedded

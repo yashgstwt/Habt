@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -88,7 +89,6 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
             }
         }
     ) { paddingValues ->
-        val paddingValues = paddingValues
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -122,7 +122,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
             items(state.habitsWithCompletions?.size ?: 0 ){ item ->
                 state.habitsWithCompletions?.get(item)?.let {
 
-                    if(it.habit?.interval!! >= 1 ){
+                    if(it.habit?.interval!! > 1 ){
                         HeatMap360(
                             habit =  it.habit ,
                             completions =  it.habitCompletions ,
@@ -136,6 +136,9 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
                         }
                     }
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.size(paddingValues.calculateBottomPadding()))
             }
         }
     }

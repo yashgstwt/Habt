@@ -1,12 +1,15 @@
 package com.theo.habt.presentation.homeScreen
 
 import android.util.Log
+import androidx.compose.foundation.gestures.forEach
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.theo.habt.Util.Response
 import com.theo.habt.Util.getCurrentDateInLong
 import com.theo.habt.dataLayer.constants.HabitWithStatus
 import com.theo.habt.dataLayer.localDb.Habit
 import com.theo.habt.dataLayer.localDb.HabitCompletion
+import com.theo.habt.dataLayer.localDb.NextHabitSchedule
 import com.theo.habt.dataLayer.repositorys.RepositoryError
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,31 +64,47 @@ class HomeViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : Vi
     }
 
 
-    fun getHabitWithCompletions(
-        month: Int = LocalDate.now().month.value,
-        year: Int = LocalDate.now().year
-    ) {
+
+    fun getHabitWithCompletions() {
+        val today = LocalDate.now()
+
+        val startOfYear = LocalDate.of(today.year , 1,1).toEpochDay()
+        val endDate = today.toEpochDay()
+
         viewModelScope.launch {
-            roomDbRepo.getHabitWithCompletions().onSuccess { flow ->
-                flow.collect { value ->
+            roomDbRepo.getHabitWithCompletionsInRange(startOfYear,endDate).onSuccess { flow ->
+                flow.collect { habitsList ->
                     val habitWithHeatList = mutableListOf<HabitWithCompletion>()
 
-                    value?.forEach {
+                    habitsList.forEach { habitWithComp ->
+                        val habit = habitWithComp.habit
+                        val interval = habit.interval ?: 0
+
+                        // 2. Decide which Heatmap to generate
+                        val heatmap = if (interval == 0) {
+                            // Monthly Heatmap
+                            getHeatmapForMonthArray(
+                                completedList = habitWithComp.completions,
+                                year = today.year,
+                                month = today.monthValue
+                            )
+                        } else {
+                            // Yearly Heatmap (Research suggests rolling year is better than calendar year)
+                            getHeatmapForYearArray(
+                                completedList = habitWithComp.completions,
+                                startDate = LocalDate.ofEpochDay(startOfYear)
+                            )
+                        }
+
                         habitWithHeatList.add(
                             HabitWithCompletion(
-                                it?.habit,
-                                habitCompletions = getHeatmapForMonthArray(
-                                    it?.completions,
-                                    year = year,
-                                    month = month,
-                                    interval = it?.habit!!.interval                                )
+                                habit = habit,
+                                habitCompletions = heatmap
                             )
                         )
                     }
 
-                    _state.update {
-                        it.copy(habitsWithCompletions = habitWithHeatList)
-                    }
+                    _state.update { it.copy(habitsWithCompletions = habitWithHeatList) }
                 }
 
             }.onFailure { exception ->
@@ -101,6 +120,30 @@ class HomeViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : Vi
         }
     }
 
+    fun getHeatmapForYearArray(
+        completedList: List<HabitCompletion>,
+        startDate: LocalDate
+    ): List<Pair<Int, Boolean>> {
+        val today = LocalDate.now()
+        val daysList = mutableListOf<Pair<Int, Boolean>>()
+
+        // Create a set of completed dates for fast lookup
+        val completedDatesSet = completedList.map { it.completionDate }.toSet()
+
+        var current = startDate
+        var dayCounter = 1
+
+        // Loop from 1 year ago until today
+        while (!current.isAfter(today)) {
+            val isCompleted = completedDatesSet.contains(current.toEpochDay())
+            daysList.add(Pair(dayCounter, isCompleted))
+
+            current = current.plusDays(1)
+            dayCounter++
+        }
+
+        return daysList
+    }
 
     fun getHabitCompletionCurrStatus() {
         viewModelScope.launch {

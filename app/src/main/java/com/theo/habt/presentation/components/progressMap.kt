@@ -206,20 +206,12 @@ fun ProgressMap(
     }
 }
 
-@Preview(showSystemUi = true)
+//@Preview(showSystemUi = true)
 @Composable
 fun HeatMap360(
     modifier: Modifier = Modifier,
-    habit: Habit = Habit(name = "some", colorArgb = -15124, creationDate = 5485316354, icon = ""),
-    completions: List<Pair<Int, Boolean>> =
-        listOf(
-            Pair(1, true),
-            Pair(1, true),
-            Pair(1, true),
-            Pair(1, true),
-            Pair(1, true),
-            Pair(1, true),
-        ),
+    habit: Habit,
+    completions: List<Pair<Int, Boolean>>,
     markAsComplete: (HabitCompletion) -> Unit = {}
 ) {
 
@@ -282,12 +274,14 @@ fun HeatMap360(
         ) {
             LazyHorizontalGrid(rows = GridCells.Fixed(7)) {
                 items(completions.size) { index ->
+                    val completion = completions[index]
+                    val color = if (completion.second) Color(habit.colorArgb) else progressMapContent
                     Box(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .padding(2.dp)
                             .clip(RoundedCornerShape(10.dp))
-                            .background(Color.Red),
+                            .background(color),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
