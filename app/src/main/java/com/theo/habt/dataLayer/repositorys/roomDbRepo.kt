@@ -13,6 +13,7 @@ import com.theo.habt.dataLayer.localDb.HabtDb
 import com.theo.habt.dataLayer.localDb.NextHabitSchedule
 import com.theo.habt.dataLayer.localDb.NextHabitScheduleDAO
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -45,9 +46,11 @@ interface RoomDbRepoInter  {
 
     suspend fun deleteNextHabitSchedule(habitSchedule: NextHabitSchedule)
 
-    suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response>
+    suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response<NextHabitSchedule>>
 
-    suspend fun getAllNextHabitSchedule(): Flow<Response>
+    suspend fun getAllNextHabitSchedule(): Flow<Response<List<NextHabitSchedule>>>
+
+    suspend fun getHabitByName(name :String ):Int
 
 }
 
@@ -67,7 +70,6 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
         }
     }
 
-    // In RoomDbRepo.kt
 
     override suspend fun getHabitWithCompletionsInRange(
         startDate: Long,
@@ -79,7 +81,6 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
                 flatList.groupBy { it.habit }.map { (habit, joins) ->
                     HabitWithCompletions(
                         habit = habit,
-                        // Filter out nulls (where the LEFT JOIN found no completion for that date)
                         completions = joins.mapNotNull { it.completion }
                     )
                 }
@@ -176,7 +177,7 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
     override suspend fun deleteNextHabitSchedule(habitSchedule: NextHabitSchedule) {
     }
 
-    override suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response> {
+    override suspend fun getNextHabitsScheduleById(habitId: Int): Flow<Response<NextHabitSchedule>> {
         return flow {
             emit(Response.Loading)
             try {
@@ -187,14 +188,20 @@ class RoomDbRepo @Inject constructor( private val roomDatabase: HabtDb) : RoomDb
         }
     }
 
-    override suspend fun getAllNextHabitSchedule(): Flow<Response> {
+    override suspend fun getAllNextHabitSchedule(): Flow<Response<List<NextHabitSchedule>>> {
         return flow {
                 emit(Response.Loading)
             try {
-                emit(Response.Success(roomDatabase.NextHabitScheduleDAO().getAllNextHabitSchedule()))
+              roomDatabase.NextHabitScheduleDAO().getAllNextHabitSchedule().collect { res ->
+                    emit(Response.Success(res))
+              }
             }catch (e : Exception){
                 emit(Response.Error("Failed to load data"))
             }
         }
+    }
+
+    override suspend fun getHabitByName(name :String ): Int {
+        return roomDatabase.habitDao().getHabitByName(name)
     }
 }

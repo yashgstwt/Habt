@@ -5,10 +5,11 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.theo.habt.dataLayer.typeConverters.ColorConverter
+import com.theo.habt.dataLayer.typeConverters.LocalDateConverter
 import com.theo.habt.dataLayer.typeConverters.TimeConverter
 
 @Database(entities = [Habit::class, HabitCompletion::class,NextHabitSchedule::class ], version = 1)
-@TypeConverters(ColorConverter::class , TimeConverter::class)
+@TypeConverters(ColorConverter::class , TimeConverter::class, LocalDateConverter::class)
 abstract class HabtDb() : RoomDatabase(){
     abstract fun habitDao() : HabitDAO
 

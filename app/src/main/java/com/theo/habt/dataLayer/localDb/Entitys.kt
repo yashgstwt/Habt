@@ -1,7 +1,6 @@
 package com.theo.habt.dataLayer.localDb
 
 import androidx.room.ColumnInfo
-import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -34,7 +33,7 @@ data class Habit(
     val reminder: LocalTime? = null,
 
     @ColumnInfo(name= "interval")
-    val interval:Int = 0
+    val interval:Int = 1
 
 )
 
@@ -74,5 +73,5 @@ data class NextHabitSchedule(
     @ColumnInfo(name = "habit_id")
     val habitID: Int,
     @ColumnInfo(name = "date" )
-    val date : Long
+    val date: LocalDate? = LocalDate.now()
 )

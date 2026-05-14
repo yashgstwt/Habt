@@ -94,9 +94,7 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
                 .fillMaxWidth()
                 .background(Color.Black)
         ) {
-
             item {
-
                 Box(
                     modifier = Modifier
                         .height(300.dp)
@@ -120,19 +118,24 @@ fun HomeScreen(viewModel: HomeViewModal = hiltViewModel(), navigateToAddHabitScr
 
 
             items(state.habitsWithCompletions?.size ?: 0 ){ item ->
-                state.habitsWithCompletions?.get(item)?.let {
+                state.habitsWithCompletions?.get(item)?.let { habitWithComp ->
+                    val habit = habitWithComp.habit
+                    if(habit != null) {
+                        if(habit.interval >= 1 ){
+                            HeatMap360(
+                                habit = habit,
+                                completions = habitWithComp.habitCompletions,
+                            ){ habitCompletion ->
+                                viewModel.markAsCompleted(habitCompletion, habit.interval)
+                            }
 
-                    if(it.habit?.interval!! > 1 ){
-                        HeatMap360(
-                            habit =  it.habit ,
-                            completions =  it.habitCompletions ,
-                        ){ habitCompletion ->
-                            viewModel.markAsCompleted(habitCompletion)
-                        }
-
-                    } else {
-                        ProgressMap(habit =  it.habit , completions =  it.habitCompletions ){ habitCompletion ->
-                            viewModel.markAsCompleted(habitCompletion)
+                        } else {
+                            ProgressMap(
+                                habit = habit,
+                                completions = habitWithComp.habitCompletions
+                            ){ habitCompletion ->
+                                viewModel.markAsCompleted(habitCompletion, habit.interval)
+                            }
                         }
                     }
                 }

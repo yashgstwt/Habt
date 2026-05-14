@@ -5,13 +5,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.theo.habt.dataLayer.constants.INITAL_ICON_ID
-import com.theo.habt.dataLayer.constants.habitIcons
 import com.theo.habt.dataLayer.localDb.Habit
-import com.theo.habt.dataLayer.localDb.HabitCompletion
+import com.theo.habt.dataLayer.localDb.NextHabitSchedule
 import com.theo.habt.dataLayer.repositorys.RepositoryError
 import com.theo.habt.dataLayer.repositorys.RoomDbRepo
 import com.theo.habt.ui.theme.INITIAL_COLOR
-import com.theo.habt.ui.theme.colorPallet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
-import java.util.Date
+import java.util.Calendar
 import javax.inject.Inject
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -34,12 +32,16 @@ data class NewHabitUiState(
     val icon: String = INITAL_ICON_ID,
     val time: LocalTime? = null,
     val showSuccessMessage: Boolean = false,
-    val interval: Int = 0
+    val interval: Int = 1
 )
 
 @HiltViewModel
 class NewHabitViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) : ViewModel() {
 
+    init {
+        val currentDate = LocalDate.now()
+        Log.d("todayTime", currentDate.toString())
+    }
     private var _habit = MutableStateFlow(NewHabitUiState())
 
     val habit = _habit.stateIn(
@@ -117,7 +119,10 @@ class NewHabitViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) 
                 interval = _habit.value.interval
             )
             roomDbRepo.insertHabit(habit).onSuccess {
+
                 updateShowSuccessMessage(true)
+                setHabitCompletionNextDate(_habit.value.name)
+
             }.onFailure { error ->
                 when (error) {
                     is RepositoryError.RoomErrors.NameAlreadyExist -> {
@@ -127,5 +132,23 @@ class NewHabitViewModal @Inject constructor(private val roomDbRepo: RoomDbRepo) 
                 }
             }
         }
+    }
+
+    fun setHabitCompletionNextDate(name : String ){
+        viewModelScope.launch {
+            var id: Int? = null
+            try {
+                id = roomDbRepo.getHabitByName(name)
+                id?.let {
+                    roomDbRepo.insertNextHabitSchedule(NextHabitSchedule(
+                        habitID = id,
+                        date = LocalDate.now()
+                    ))
+                }
+            }catch (e : Exception){
+                Log.e("LOG", e.toString())
+            }
+        }
+
     }
 }

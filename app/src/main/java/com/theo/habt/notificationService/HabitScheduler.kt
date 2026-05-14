@@ -20,7 +20,9 @@ class HabitScheduler(
     private val alarmManager =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun scheduleDailyNotification(hour: Int, min: Int ,interval :Int = 1) {
+    fun scheduleDailyNotification(hour: Int, min: Int, interval: Int = 1) {
+        // Ensure interval is at least 1 to avoid recursive scheduling
+        val safeInterval = if (interval < 1) 1 else interval
 
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Kolkata")).apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -28,9 +30,9 @@ class HabitScheduler(
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 
-            // If time already passed today → schedule tomorrow
+            // If time already passed today → schedule for the next interval
             if (timeInMillis <= System.currentTimeMillis()) {
-                add(Calendar.DAY_OF_YEAR, interval)
+                add(Calendar.DAY_OF_YEAR, safeInterval)
             }
         }
 
@@ -40,12 +42,13 @@ class HabitScheduler(
             putExtra("HABIT_NAME", habitName)
             putExtra("HOUR", hour)
             putExtra("MIN", min)
-            putExtra("INTERVAL", interval)
+            putExtra("INTERVAL", safeInterval)
         }
 
+        // Use habitName.hashCode() as requestCode to allow multiple different habit alarms
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            Constant.NOTIFACTION_CODE,
+            habitName.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -78,7 +81,7 @@ class HabitScheduler(
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            Constant.NOTIFACTION_CODE,
+            habitName.hashCode(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

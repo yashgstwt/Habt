@@ -37,10 +37,10 @@ fun isNotificationsEnabled(context: Context): Boolean {
 }
 
 
-sealed class Response  {
+sealed class Response <out T > {
 
-    data object Loading : Response()
-    data class Error(val message: String): Response()
-    data class Success<T>(val response : T ) : Response()
+    data object Loading : Response<Nothing>()
+    data class Error(val message: String): Response<Nothing>()
+    data class Success<T>(val response : T ) : Response<T>()
 
 }

@@ -23,6 +23,9 @@ interface HabitDAO {
     @Delete
     suspend fun deleteHabit(habit: Habit)
 
+    @Query("SELECT id FROM habits where name == :habitName ")
+    suspend fun getHabitByName(habitName :String ): Int
+
     @Transaction
     @Query("SELECT * FROM habits")
     fun getHabitsWithCompletions(): Flow<List<HabitWithCompletions?>?>

@@ -179,29 +179,27 @@ fun ProgressMap(
                     }
             )
         }
-        Box(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(8),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp),
-            contentAlignment = Alignment.Center
+                .height(200.dp),
+            userScrollEnabled = true
         ) {
-
-        LazyVerticalGrid(columns = GridCells.Fixed(8), userScrollEnabled = false) {
             items(completions.size) { index ->
                 val completion = completions[index]
                 val color = if (completion.second) Color(habit.colorArgb) else progressMapContent
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
-                        .padding(5.dp)
-                        .clip(RoundedCornerShape(10.dp))
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(color),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(completion.first.toString(), textAlign = TextAlign.Center, color = Color.White)
+                    Text(completion.first.toString(), textAlign = TextAlign.Center, color = Color.White, fontSize = 12.sp)
                 }
             }
-        }
         }
     }
 }
@@ -266,31 +264,32 @@ fun HeatMap360(
                     }
             )
         }
-        Box(
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(7),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(250.dp),
-            contentAlignment = Alignment.Center
+                .height(200.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp),
+            userScrollEnabled = true
         ) {
-            LazyHorizontalGrid(rows = GridCells.Fixed(7)) {
-                items(completions.size) { index ->
-                    val completion = completions[index]
-                    val color = if (completion.second) Color(habit.colorArgb) else progressMapContent
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .padding(2.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(color),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            (index + 1).toString(),
-                            textAlign = TextAlign.Center,
-                            color = Color.White,
-                            fontSize = 10.sp
-                        )
-                    }
+            items(completions.size) { index ->
+                val completion = completions[index]
+                val color = if (completion.second) Color(habit.colorArgb) else progressMapContent
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(color),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        completion.first.toString(),
+                        textAlign = TextAlign.Center,
+                        color = Color.White,
+                        fontSize = 9.sp
+                    )
                 }
             }
         }
